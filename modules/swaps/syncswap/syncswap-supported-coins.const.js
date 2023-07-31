@@ -1,0 +1,1 @@
+export const SYNCSWAP_SUPPORTED_COINS = ['ETH', 'USDC', 'WBTC'];
