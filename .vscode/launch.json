@@ -3,9 +3,33 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Launch Program",
+      "name": "Start Job",
       "runtimeArgs": ["-r", "ts-node/register"],
       "args": ["${workspaceFolder}/src/index.ts"],
+      "console": "integratedTerminal"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Import Accounts",
+      "runtimeArgs": ["-r", "ts-node/register"],
+      "args": ["${workspaceFolder}/src/import.ts"],
+      "console": "integratedTerminal"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Update Activity",
+      "runtimeArgs": ["-r", "ts-node/register"],
+      "args": ["${workspaceFolder}/src/update.ts"],
+      "console": "integratedTerminal"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Scheduler",
+      "runtimeArgs": ["-r", "ts-node/register"],
+      "args": ["${workspaceFolder}/src/schedule.ts"],
       "console": "integratedTerminal"
     }
   ]

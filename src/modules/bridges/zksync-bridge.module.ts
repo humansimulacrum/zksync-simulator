@@ -47,7 +47,7 @@ export class ZkSyncBridge {
 
   async bridge(amountToBridgeMin, amountToBridgeMax) {
     try {
-      const amountToBridgeEth = randomFloatInRange(amountToBridgeMin, amountToBridgeMax, 6);
+      const amountToBridgeEth = randomFloatInRange(amountToBridgeMin, amountToBridgeMax, 10);
       const amountToBridgeWei = this.web3.utils.toWei(String(amountToBridgeEth), 'ether');
 
       log(this.protocolName, `${this.walletAddress}: Sending ${amountToBridgeEth} ETH to ZkSync`);
@@ -85,7 +85,7 @@ export class ZkSyncBridge {
       const estimatedGas = 150500;
 
       const minEthNeeded = ethers.BigNumber.from(estimatedGas)
-        .mul(baseFee)
+        .mul(baseFee!)
         .add(maxPriorityFeePerGas)
         .add(ethers.BigNumber.from(l2BaseCost))
         .add(ethers.BigNumber.from(l2Value));
@@ -114,10 +114,14 @@ export class ZkSyncBridge {
       };
 
       const signedTx = await this.web3.eth.accounts.signTransaction(tx, this.privateKey);
+      if (!signedTx || !signedTx.rawTransaction) {
+        throw new Error('Transaction is not generated');
+      }
+
       const transactionData = await this.web3.eth.sendSignedTransaction(signedTx.rawTransaction);
 
       return transactionData;
-    } catch (error) {
+    } catch (error: any) {
       if (error?.message.includes('insufficient funds')) {
         log(this.protocolName, `${this.walletAddress}: Unsufficient balance.`);
       } else {

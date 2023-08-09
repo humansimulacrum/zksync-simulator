@@ -17,21 +17,17 @@ export const calculateSwapParameters = async (swapInstance, debankInstance) => {
 
   const supportedTokensWithBalance = tokensOnChain.filter((token) => swapSupportedTokens.includes(token.symbol));
   const supportedTokensWithMinBalanceSufficed = supportedTokensWithBalance.filter(
-    (token) => token.price >= minAmountOfTokenToSwapInUsd
+    (token) => token.valueInToken >= minAmountOfTokenToSwapInUsd
   );
 
   if (supportedTokensWithMinBalanceSufficed.length === 0) {
-    console.log(
-      `ZkSync AIO - Pre-Swap. ${walletAddr}: There aren't any liquidity to swap on the walllet. Min amount of token to swap = ${minAmountOfTokenToSwapInUsd}`
+    throw new Error(
+      `There aren't any liquidity to swap on the walllet. Min amount of token to swap = ${minAmountOfTokenToSwapInUsd}`
     );
-
-    throw new Error('Not enough liquidity');
   }
 
   if (!supportedTokensWithMinBalanceSufficed.some((token) => token.symbol === 'ETH')) {
-    console.log(`ZkSync AIO - Pre-Swap. ${walletAddr}: There are not enough ETH to perform a swap.`);
-
-    throw new Error('Not enough liquidity');
+    throw new Error(`There are not enough ETH to perform a swap.`);
   }
 
   let fromToken;

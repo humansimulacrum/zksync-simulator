@@ -73,6 +73,11 @@ export class ZkSyncNameService {
       };
 
       const signedTx = await this.web3.eth.accounts.signTransaction(tx, this.privateKey);
+
+      if (!signedTx || !signedTx.rawTransaction) {
+        throw new Error('Signed transaction is not generated');
+      }
+
       const sendTransactionResult = await this.web3.eth.sendSignedTransaction(signedTx.rawTransaction);
 
       log(
@@ -81,7 +86,7 @@ export class ZkSyncNameService {
       );
 
       return sendTransactionResult;
-    } catch (e) {
+    } catch (e: any) {
       if (e.message.includes('insufficient funds')) {
         const [balance, fee, value] = extractNumbersFromString(e.message);
         const feeInEther = this.web3.utils.fromWei(fee, 'ether');

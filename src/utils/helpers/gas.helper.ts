@@ -1,4 +1,5 @@
 import { maxGwei, moduleName, sleepOnHighGas } from '../const/config.const';
+import { log } from '../logger/logger';
 import { sleep } from './sleep.helper';
 
 export const isGasOkay = async (web3, ethAddress) => {
@@ -8,8 +9,9 @@ export const isGasOkay = async (web3, ethAddress) => {
   const isGasHigher = currentGas <= maxGwei;
 
   if (!isGasHigher) {
-    console.log(
-      `${moduleName}. ${ethAddress}: gas is too high. ${currentGas} gwei now vs ${maxGwei} gwei limit. Waiting for ${sleepOnHighGas} seconds...`
+    log(
+      'Gas Checker',
+      `${ethAddress}: gas is too high. ${currentGas} gwei now vs ${maxGwei} gwei limit. Waiting for ${sleepOnHighGas} seconds...`
     );
 
     await sleep(sleepOnHighGas * 1000);
