@@ -27,7 +27,7 @@ export const choose = (array) => {
   return array[index];
 };
 
-export const shuffle = (array) => {
+export const shuffle = <Type>(array: Type[]): Type[] => {
   let currentIndex = array.length,
     randomIndex;
 

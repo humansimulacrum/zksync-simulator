@@ -11,7 +11,7 @@ export const calculateSwapParameters = async (swapInstance, debankInstance) => {
 
   const tokensOnChain = await debankInstance.getTokenValueInChain(walletAddr, swapChain);
   if (!tokensOnChain) {
-    sleep(10 * 1000);
+    sleep(10 * 1000, walletAddr, 'when swap params calculation failed.');
     return false;
   }
 

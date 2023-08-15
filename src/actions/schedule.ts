@@ -1,6 +1,6 @@
 import { schedule } from 'node-cron';
-import { main } from '.';
-import { randomIntInRange } from './utils/helpers';
+import { main } from './main';
+import { randomIntInRange } from '../utils/helpers';
 
 function getRandomTime() {
   // Generate a random hour between 0 and 23

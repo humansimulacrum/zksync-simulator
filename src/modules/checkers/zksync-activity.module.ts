@@ -32,11 +32,16 @@ export class ZkSyncActivityModule {
   }
 
   private async getLastTransactionDate(transactions: TransactionDataItem[]) {
-    const lastTransaction = transactions.reduce((currentLastTransaction, currentTransaction) => {
-      return new Date(currentLastTransaction.receivedAt) > new Date(currentTransaction.receivedAt)
-        ? currentLastTransaction
-        : currentTransaction;
-    });
+    const lastTransaction = transactions.reduce(
+      (currentLastTransaction, currentTransaction) => {
+        return new Date(currentLastTransaction.receivedAt) > new Date(currentTransaction.receivedAt)
+          ? currentLastTransaction
+          : currentTransaction;
+      },
+      {
+        receivedAt: new Date(0).toISOString(),
+      }
+    );
 
     return lastTransaction.receivedAt;
   }
@@ -50,8 +55,8 @@ export class ZkSyncActivityModule {
     try {
       const ranking = await postData(urlString, proxyStr, body);
 
-      if (!ranking || !ranking.length || !ranking[0].rank) {
-        throw new Error('Ranking is not found');
+      if (!ranking || !ranking.length || !ranking[0] || !ranking[0].rank) {
+        return 0;
       }
 
       return ranking[0].rank;

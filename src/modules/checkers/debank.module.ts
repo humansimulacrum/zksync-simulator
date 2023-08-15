@@ -58,8 +58,7 @@ export class Debank {
     } catch (e: any) {
       if (e.message.includes('429')) {
         const message = `Error on wallet token value fetching. Too many requests.`;
-        log(this.protocolName, `${walletAddr}: Sleeping for 40 seconds, because of the Debank 429 error`);
-        await sleep(40 * 1000);
+        await sleep(40 * 1000, walletAddr, 'on debank 429 error');
         throw new Error(message);
       }
 

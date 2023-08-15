@@ -1,11 +1,11 @@
 import Web3 from 'web3';
-import { Account, AccountModel } from './utils/entities/account.entity';
-import { importProxies } from './utils/helpers';
-import { connectToDb } from './utils/helpers/mongoose.helper';
-import { ZkSyncActivityModule } from './modules/checkers/zksync-activity.module';
-import { ERA } from './utils/const/chains.const';
-import { log } from './utils/logger/logger';
-import { updateActivity } from './utils/helpers/activity.helper';
+import { Account, AccountModel } from '../utils/entities/account.entity';
+import { importProxies } from '../utils/helpers';
+import { connectToDb } from '../utils/helpers/mongoose.helper';
+import { ZkSyncActivityModule } from '../modules/checkers/zksync-activity.module';
+import { ERA } from '../utils/const/chains.const';
+import { log } from '../utils/logger/logger';
+import { updateActivity } from '../utils/helpers/activity.helper';
 
 async function updateActivityAll() {
   await connectToDb();

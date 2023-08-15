@@ -5,7 +5,7 @@
       "request": "launch",
       "name": "Start Job",
       "runtimeArgs": ["-r", "ts-node/register"],
-      "args": ["${workspaceFolder}/src/index.ts"],
+      "args": ["${workspaceFolder}/src/actions/main.ts"],
       "console": "integratedTerminal"
     },
     {
@@ -13,7 +13,7 @@
       "request": "launch",
       "name": "Import Accounts",
       "runtimeArgs": ["-r", "ts-node/register"],
-      "args": ["${workspaceFolder}/src/import.ts"],
+      "args": ["${workspaceFolder}/src/actions/import.ts"],
       "console": "integratedTerminal"
     },
     {
@@ -21,7 +21,7 @@
       "request": "launch",
       "name": "Update Activity",
       "runtimeArgs": ["-r", "ts-node/register"],
-      "args": ["${workspaceFolder}/src/update.ts"],
+      "args": ["${workspaceFolder}/src/actions/update.ts"],
       "console": "integratedTerminal"
     },
     {
@@ -29,7 +29,15 @@
       "request": "launch",
       "name": "Debug Scheduler",
       "runtimeArgs": ["-r", "ts-node/register"],
-      "args": ["${workspaceFolder}/src/schedule.ts"],
+      "args": ["${workspaceFolder}/src/actions/schedule.ts"],
+      "console": "integratedTerminal"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Tier Distribution",
+      "runtimeArgs": ["-r", "ts-node/register"],
+      "args": ["${workspaceFolder}/src/actions/tier-distribution.ts"],
       "console": "integratedTerminal"
     }
   ]

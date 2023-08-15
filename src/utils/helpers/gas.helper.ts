@@ -9,12 +9,9 @@ export const isGasOkay = async (web3, ethAddress) => {
   const isGasHigher = currentGas <= maxGwei;
 
   if (!isGasHigher) {
-    log(
-      'Gas Checker',
-      `${ethAddress}: gas is too high. ${currentGas} gwei now vs ${maxGwei} gwei limit. Waiting for ${sleepOnHighGas} seconds...`
-    );
+    log('Gas Checker', `${ethAddress}: gas is too high. ${currentGas} gwei now vs ${maxGwei} gwei limit.`);
 
-    await sleep(sleepOnHighGas * 1000);
+    await sleep(sleepOnHighGas * 1000, ethAddress, 'on high gas.');
   }
 
   return isGasHigher;

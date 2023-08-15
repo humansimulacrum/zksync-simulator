@@ -1,3 +1,5 @@
+import { ActivityType } from '../helpers/tier.helper';
+
 export const maxGwei = 15;
 export const shuffleWallets = true;
 
@@ -18,3 +20,5 @@ export const logFilePath = 'logs.txt';
 
 export const daysBetweenTransactionsOnAccount = 30; // one transaction each week, when activity is kept
 export const accountsInBatch = 3;
+
+export const tierAssignmentActivityPriorities: ActivityType[] = ['Official Bridge', 'ZkDomain', 'Transactions', 'Rank'];

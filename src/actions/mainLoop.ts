@@ -1,9 +1,9 @@
-import { MuteSwap } from './modules/swaps/muteswap.module';
-import { SpaceFiSwap } from './modules/swaps/spacefi.module';
-import { SyncSwap } from './modules/swaps/syncswap.module';
-import { choose } from './utils/helpers';
-import { updateActivity } from './utils/helpers/activity.helper';
-import { calculateSwapParameters } from './utils/helpers/pre-swap.helper';
+import { MuteSwap } from '../modules/swaps/muteswap.module';
+import { SpaceFiSwap } from '../modules/swaps/spacefi.module';
+import { SyncSwap } from '../modules/swaps/syncswap.module';
+import { choose, waitForGas } from '../utils/helpers';
+import { updateActivity } from '../utils/helpers/activity.helper';
+import { calculateSwapParameters } from '../utils/helpers/pre-swap.helper';
 
 const SWAPS = [SyncSwap, SpaceFiSwap, MuteSwap];
 

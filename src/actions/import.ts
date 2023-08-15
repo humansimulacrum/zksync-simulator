@@ -1,11 +1,12 @@
 import Web3 from 'web3';
-import { ZkSyncActivityModule } from './modules/checkers/zksync-activity.module';
-import { importETHWallets, importProxies } from './utils/helpers';
-import { log } from './utils/logger/logger';
-import { ERA } from './utils/const/chains.const';
-import { AccountModel } from './utils/entities/account.entity';
-import { connectToDb } from './utils/helpers/mongoose.helper';
-import { base64Encode } from './utils/helpers/encode.helper';
+import { ZkSyncActivityModule } from '../modules/checkers/zksync-activity.module';
+import { importETHWallets, importProxies } from '../utils/helpers';
+import { log } from '../utils/logger/logger';
+import { ERA } from '../utils/const/chains.const';
+import { AccountModel } from '../utils/entities/account.entity';
+import { connectToDb } from '../utils/helpers/mongoose.helper';
+import { base64Encode } from '../utils/helpers/encode.helper';
+import { ActivityModel } from '../utils/entities/activities.entity';
 
 async function importAccounts() {
   await connectToDb();
@@ -25,14 +26,25 @@ async function importAccounts() {
     const privateKey = ethWallets[i];
     const walletAddr = web3.eth.accounts.privateKeyToAccount(privateKey).address;
 
+    const existingAccount = await AccountModel.find({ walletAddress: walletAddr }).lean();
+
+    if (existingAccount.length) {
+      log('Account DB Import', `${walletAddr}: Already in the DB.`);
+      continue;
+    }
+
     const walletActivity = await checker.getActivity(walletAddr);
+
+    const activity = new ActivityModel(walletActivity);
 
     const account = new AccountModel({
       privateKey: base64Encode(privateKey),
       walletAddress: walletAddr,
-      ...walletActivity,
+      activity,
+      tier: null,
     });
 
+    await activity.save();
     await account.save();
 
     log('Account DB Import', `${walletAddr}: Saved to DB.`);

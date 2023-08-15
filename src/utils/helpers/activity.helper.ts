@@ -1,6 +1,13 @@
-import { Account, AccountModel } from '../entities/account.entity';
+import { ZkSyncActivityModule } from '../../modules/checkers/zksync-activity.module';
+import { Account } from '../entities/account.entity';
+import { ActivityModel } from '../entities/activities.entity';
 
-export const updateActivity = async (account: Account, activityModule) => {
+export const updateActivity = async (account: Account, activityModule: ZkSyncActivityModule) => {
   const updatedActivity = await activityModule.getActivity(account.walletAddress);
-  return AccountModel.updateOne({ walletAddress: account.walletAddress }, { ...updatedActivity });
+
+  if (isNaN(updatedActivity.gasSpentInUsd)) {
+    updatedActivity.gasSpentInUsd = 0;
+  }
+
+  return ActivityModel.updateOne({ _id: account.activity._id }, { ...updatedActivity });
 };
