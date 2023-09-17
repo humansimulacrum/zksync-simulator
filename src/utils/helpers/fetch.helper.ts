@@ -1,6 +1,6 @@
 import fetch from 'make-fetch-happen';
 
-export const fetchData = async (url: string, proxy: string) => {
+export const fetchData = async (url: string, proxy?: string) => {
   const response = await fetch(url, { proxy });
   if (response.headers.get('content-type').includes('json')) {
     const json = await response.json();

@@ -46,7 +46,7 @@ const sortingFunction = (accountA, accountB) => {
     if (typeof activityResultA === 'number' && typeof activityResultB === 'number') {
       if (activityResultA === activityResultB) continue;
 
-      // this comparison could be pretty unnecessary, but on the rank and negative comparisons that's the only way to go
+      // On the rank and negative comparisons that's the only way to go
       if (!activityResultA) return 1;
       if (!activityResultB) return -1;
 

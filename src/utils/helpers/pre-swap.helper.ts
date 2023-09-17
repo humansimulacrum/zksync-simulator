@@ -1,6 +1,6 @@
 import { minAmountOfTokenToSwapInUsd } from '../const/config.const';
 import { choose } from './random.helper';
-import { sleep } from './sleep.helper';
+import { sleepLogWrapper } from './sleep.helper';
 
 export const calculateSwapParameters = async (swapInstance, debankInstance) => {
   const swapChain = swapInstance.chain.name;
@@ -11,7 +11,7 @@ export const calculateSwapParameters = async (swapInstance, debankInstance) => {
 
   const tokensOnChain = await debankInstance.getTokenValueInChain(walletAddr, swapChain);
   if (!tokensOnChain) {
-    sleep(10 * 1000, walletAddr, 'when swap params calculation failed.');
+    sleepLogWrapper(10 * 1000, walletAddr, 'when swap params calculation failed.');
     return false;
   }
 

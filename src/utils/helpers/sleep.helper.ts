@@ -2,9 +2,7 @@ import cliProgress from 'cli-progress';
 import colors from 'ansi-colors';
 import { moduleName } from '../const/config.const';
 
-export const sleepUtil = async (millis) => new Promise((resolve) => setTimeout(resolve, millis));
-
-export const sleep = async (millis, walletAddr, message) => {
+export const sleepLogWrapper = async (millis, walletAddr, message) => {
   console.log('\r');
   const bar = new cliProgress.SingleBar(
     {
@@ -26,8 +24,12 @@ export const sleep = async (millis, walletAddr, message) => {
 
   for (let i = 0; i < iters; i++) {
     bar.increment(1);
-    await sleepUtil(1000);
+    await sleep(1000);
   }
 
   bar.stop();
 };
+
+export async function sleep(millis) {
+  return new Promise((resolve) => setTimeout(resolve, millis));
+}

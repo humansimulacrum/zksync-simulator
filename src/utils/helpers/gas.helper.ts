@@ -1,6 +1,6 @@
-import { maxGwei, moduleName, sleepOnHighGas } from '../const/config.const';
+import { maxGwei, sleepOnHighGas } from '../const/config.const';
 import { log } from '../logger/logger';
-import { sleep } from './sleep.helper';
+import { sleepLogWrapper } from './sleep.helper';
 
 export const isGasOkay = async (web3, ethAddress) => {
   const baseFee = (await web3.eth.getBlock('latest')).baseFeePerGas;
@@ -11,7 +11,7 @@ export const isGasOkay = async (web3, ethAddress) => {
   if (!isGasHigher) {
     log('Gas Checker', `${ethAddress}: gas is too high. ${currentGas} gwei now vs ${maxGwei} gwei limit.`);
 
-    await sleep(sleepOnHighGas * 1000, ethAddress, 'on high gas.');
+    await sleepLogWrapper(sleepOnHighGas * 1000, ethAddress, 'on high gas.');
   }
 
   return isGasHigher;

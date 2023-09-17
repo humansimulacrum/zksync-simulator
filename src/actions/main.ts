@@ -1,5 +1,5 @@
 import { sleepBetweenWalletsFrom, sleepBetweenWalletsTo } from '../utils/const/config.const';
-import { importProxies, randomIntInRange, shuffle, sleep, waitForGas } from '../utils/helpers';
+import { importProxies, randomIntInRange, shuffle, sleep, sleepLogWrapper, waitForGas } from '../utils/helpers';
 import { Debank } from '../modules/checkers/debank.module';
 import { accountPicker } from '../utils/helpers/picker.helper';
 import { ZkSyncActivityModule } from '../modules/checkers/zksync-activity.module';
@@ -27,7 +27,7 @@ export async function main() {
     await executeSwap(account, debank, activityModule);
 
     const sleepDuration = randomIntInRange(sleepBetweenWalletsFrom, sleepBetweenWalletsTo);
-    await sleep(sleepDuration * 1000, ethers.constants.AddressZero, 'between wallets.');
+    await sleepLogWrapper(sleepDuration * 1000, ethers.constants.AddressZero, 'between wallets.');
   }
 
   process.exit(0);

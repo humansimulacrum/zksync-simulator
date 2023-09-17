@@ -19,20 +19,3 @@ export const getAmountWithPrecision = async (tokenContractAddress, tokenAmount, 
 
   return parseInt(amount);
 };
-
-export const getAmountInReadableFormat = ({ tokenBalance, decimals }) => {
-  tokenBalance = String(tokenBalance);
-  decimals = parseInt(decimals);
-
-  if (decimals > tokenBalance.length) {
-    // +1 to have the first zero
-    const lengthDifference = decimals - tokenBalance.length + 1;
-    const equalizerString = '0'.repeat(lengthDifference);
-
-    tokenBalance = equalizerString + tokenBalance;
-  }
-
-  const pointPosition = tokenBalance.length - decimals;
-
-  return tokenBalance.substring(0, pointPosition) + '.' + tokenBalance.substring(pointPosition, tokenBalance.length);
-};
