@@ -11,5 +11,9 @@ export const updateActivity = async (account: Account, activityModule: ZkSyncAct
     updatedActivity.gasSpentInUsd = 0;
   }
 
+  if (!account.activity) {
+    return activityRepository.create(updatedActivity);
+  }
+
   return activityRepository.update({ id: account.activity.id }, { ...updatedActivity });
 };

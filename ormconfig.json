@@ -1,7 +1,7 @@
 {
   "type": "sqlite",
   "database": "zk-sim",
-  "logging": true,
+  "logging": false,
   "entities": ["src/entities/*.ts"],
   "migrations": [],
   "synchronize": true

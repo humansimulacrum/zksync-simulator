@@ -36,17 +36,21 @@ async function importAccounts() {
       continue;
     }
 
-    const walletActivity = await checker.getActivity(walletAddress);
-    const activity = await activityRepository.save(walletActivity);
+    const currentActivityInfo = await checker.getActivity(walletAddress);
+    const activity = await activityRepository.save(currentActivityInfo);
 
-    const account = {
+    const createAccountPayload = {
       privateKey,
       walletAddress,
       activity,
       tier: null,
     };
 
-    await accountRepository.save(account);
+    const createdAccount = await accountRepository.save(createAccountPayload);
+
+    activity.account = createdAccount;
+    await activityRepository.update({ id: activity.id }, { account: createdAccount });
+
     log('Account DB Import', `${walletAddress}: Saved to DB.`);
   }
 

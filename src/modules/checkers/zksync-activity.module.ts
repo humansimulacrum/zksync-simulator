@@ -18,6 +18,32 @@ export class ZkSyncActivityModule {
     this.web3 = web3;
   }
 
+  async getActivity(walletAddr: string): Promise<Partial<AccountActivity>> {
+    const transactionCount = await this.getTransactionCount(walletAddr);
+
+    if (!transactionCount) {
+      return {
+        rank: 0,
+        transactionCount: 0,
+        lastTransactionDate: new Date(0).toISOString(),
+        gasSpentInUsd: 0,
+      };
+    }
+
+    const transactions = await this.getTransactions(walletAddr);
+    const rank = await this.getLeaderboardPosition(walletAddr);
+
+    const gasSpentInUsd = await this.getGasSpentInUsd(transactions);
+    const lastTransactionDate = await this.getLastTransactionDate(transactions);
+
+    return {
+      rank,
+      gasSpentInUsd,
+      lastTransactionDate,
+      transactionCount,
+    };
+  }
+
   private async getTransactionCount(walletAddr: string) {
     const transactionCount = await this.web3.eth.getTransactionCount(walletAddr);
     return transactionCount;
@@ -82,31 +108,5 @@ export class ZkSyncActivityModule {
     }
 
     return [];
-  }
-
-  async getActivity(walletAddr: string): Promise<Partial<AccountActivity>> {
-    const transactionCount = await this.getTransactionCount(walletAddr);
-
-    if (!transactionCount) {
-      return {
-        rank: 0,
-        transactionCount: 0,
-        lastTransactionDate: new Date(0).toISOString(),
-        gasSpentInUsd: 0,
-      };
-    }
-
-    const transactions = await this.getTransactions(walletAddr);
-    const rank = await this.getLeaderboardPosition(walletAddr);
-
-    const gasSpentInUsd = await this.getGasSpentInUsd(transactions);
-    const lastTransactionDate = await this.getLastTransactionDate(transactions);
-
-    return {
-      rank,
-      gasSpentInUsd,
-      lastTransactionDate,
-      transactionCount,
-    };
   }
 }

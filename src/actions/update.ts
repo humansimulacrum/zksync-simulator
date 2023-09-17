@@ -6,8 +6,10 @@ import { log } from '../utils/logger/logger';
 import { updateActivity } from '../utils/helpers/activity.helper';
 import { getRepository } from 'typeorm';
 import { Account } from '../entities/account.entity';
+import { connectToDatabase } from '../utils/helpers/db.helper';
 
 async function updateActivityAll() {
+  await connectToDatabase();
   const accountRepository = getRepository(Account);
 
   const proxies = await importProxies();

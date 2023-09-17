@@ -1,9 +1,7 @@
 import fetch from 'make-fetch-happen';
-import { choose, sleep } from '../../utils/helpers/index';
+import { choose, sleepLogWrapper } from '../../utils/helpers/index';
 import { transformDebankDataToNeededFormat } from '../../utils/helpers/debank.helper';
-import { moduleName } from '../../utils/const/config.const';
 import { DebankTokenBalance, DebankWalletBalanceResponse } from '../../utils/interfaces/debank.interface';
-import { log } from '../../utils/logger/logger';
 
 export class Debank {
   proxies: string[];
@@ -58,7 +56,7 @@ export class Debank {
     } catch (e: any) {
       if (e.message.includes('429')) {
         const message = `Error on wallet token value fetching. Too many requests.`;
-        await sleep(40 * 1000, walletAddr, 'on debank 429 error');
+        await sleepLogWrapper(40 * 1000, walletAddr, 'on debank 429 error');
         throw new Error(message);
       }
 
