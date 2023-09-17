@@ -5,8 +5,9 @@
     "outDir": "dist",
     "noImplicitAny": false,
     "experimentalDecorators": true,
-    "strictPropertyInitialization": false
+    "strictPropertyInitialization": false,
+    "emitDecoratorMetadata": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "src/utils/helpers/db.helper.ts"],
   "exclude": ["node_modules"]
 }

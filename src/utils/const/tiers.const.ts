@@ -1,6 +1,8 @@
-import { Tier } from '../entities/tier.entity';
+import { Tier } from '../../entities/tier.entity';
 
-export const tiers: Tier[] = [
+type TierPayload = Omit<Tier, 'accounts' | 'id'>;
+
+export const tiers: TierPayload[] = [
   {
     tierRank: 1,
     transactionCountNeeded: 50,

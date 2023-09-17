@@ -2,7 +2,7 @@ import Web3 from 'web3';
 
 import { getAbiByRelativePath, getSwapDeadline } from '../../utils/helpers';
 import { ethers } from 'ethers';
-import { Swap } from './swap';
+import { Swap } from './swap.module.ts';
 
 // those contracts were taken from https://syncswap.gitbook.io/api-documentation/resources/smart-contract
 export const SYNCSWAP_CLASSIC_POOL_FACTORY_ADDR = Web3.utils.toChecksumAddress(

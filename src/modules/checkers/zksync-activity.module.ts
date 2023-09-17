@@ -3,12 +3,15 @@ import { choose, getTokenPriceCryptoCompare } from '../../utils/helpers';
 import { fetchData, postData } from '../../utils/helpers/fetch.helper';
 import { log } from '../../utils/logger/logger';
 import { TransactionDataItem } from '../../utils/interfaces/transaction-item.interface';
-import { AccountActivity } from '../../utils/interfaces/activity.interface';
+import { getRepository } from 'typeorm';
+import { AccountActivity } from '../../entities/activities.entity';
 
 export class ZkSyncActivityModule {
   moduleName = 'ZkSyncActivityModule';
   proxies: string[];
   web3: Web3;
+
+  activityRepo = getRepository(AccountActivity);
 
   constructor(proxies: string[], web3: Web3) {
     this.proxies = proxies;
@@ -81,7 +84,7 @@ export class ZkSyncActivityModule {
     return [];
   }
 
-  async getActivity(walletAddr: string): Promise<AccountActivity> {
+  async getActivity(walletAddr: string): Promise<Partial<AccountActivity>> {
     const transactionCount = await this.getTransactionCount(walletAddr);
 
     if (!transactionCount) {

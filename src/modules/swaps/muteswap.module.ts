@@ -1,5 +1,5 @@
 import Web3 from 'web3';
-import { Swap } from './swap';
+import { Swap } from './swap.module.ts';
 import { approveToken, getAbiByRelativePath, getSwapDeadline } from '../../utils/helpers';
 import { zkSyncEraTokenCodeToContractMapper } from '../../utils/const/token-contacts/era.contracts';
 

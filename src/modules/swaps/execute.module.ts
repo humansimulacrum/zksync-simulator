@@ -1,13 +1,13 @@
-import { MuteSwap } from '../modules/swaps/muteswap.module';
-import { SpaceFiSwap } from '../modules/swaps/spacefi.module';
-import { SyncSwap } from '../modules/swaps/syncswap.module';
-import { choose, waitForGas } from '../utils/helpers';
-import { updateActivity } from '../utils/helpers/activity.helper';
-import { calculateSwapParameters } from '../utils/helpers/pre-swap.helper';
+import { choose } from '../../utils/helpers';
+import { updateActivity } from '../../utils/helpers/activity.helper';
+import { calculateSwapParameters } from '../../utils/helpers/pre-swap.helper';
+import { MuteSwap } from './muteswap.module';
+import { SpaceFiSwap } from './spacefi.module';
+import { SyncSwap } from './syncswap.module';
 
 const SWAPS = [SyncSwap, SpaceFiSwap, MuteSwap];
 
-export const mainLoop = async (account, debankInstance, activityModule) => {
+export const executeSwap = async (account, debankInstance, activityModule) => {
   const swapClass = choose(SWAPS);
   const swapInstance = new swapClass(account.privateKey);
   let swapParams;

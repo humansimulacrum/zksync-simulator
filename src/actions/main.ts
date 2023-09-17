@@ -1,22 +1,16 @@
-import {
-  moduleName,
-  shuffleWallets,
-  sleepBetweenWalletsFrom,
-  sleepBetweenWalletsTo,
-} from '../utils/const/config.const';
-import { importETHWallets, importProxies, randomIntInRange, shuffle, sleep, waitForGas } from '../utils/helpers';
-import { log } from '../utils/logger/logger';
-import { mainLoop } from './mainLoop';
+import { sleepBetweenWalletsFrom, sleepBetweenWalletsTo } from '../utils/const/config.const';
+import { importProxies, randomIntInRange, shuffle, sleep, waitForGas } from '../utils/helpers';
 import { Debank } from '../modules/checkers/debank.module';
-import { connectToDb } from '../utils/helpers/mongoose.helper';
 import { accountPicker } from '../utils/helpers/picker.helper';
 import { ZkSyncActivityModule } from '../modules/checkers/zksync-activity.module';
 import Web3 from 'web3';
 import { ERA } from '../utils/const/chains.const';
 import { ethers } from 'ethers';
+import { connectToDatabase } from '../utils/helpers/db.helper';
+import { executeSwap } from '../modules/swaps/execute.module';
 
 export async function main() {
-  await connectToDb();
+  await connectToDatabase();
 
   const proxies = await importProxies();
   const accounts = await accountPicker();
@@ -30,7 +24,7 @@ export async function main() {
     const account = accounts[i];
 
     await waitForGas(web3, account.walletAddress);
-    await mainLoop(account, debank, activityModule);
+    await executeSwap(account, debank, activityModule);
 
     const sleepDuration = randomIntInRange(sleepBetweenWalletsFrom, sleepBetweenWalletsTo);
     await sleep(sleepDuration * 1000, ethers.constants.AddressZero, 'between wallets.');

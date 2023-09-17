@@ -1,25 +1,28 @@
+import { getRepository } from 'typeorm';
 import { tiers } from '../utils/const/tiers.const';
-import { Account, AccountDocument, AccountModel } from '../utils/entities/account.entity';
-import { ActivityModel } from '../utils/entities/activities.entity';
-import { Tier, TierDocument, TierModel } from '../utils/entities/tier.entity';
 import { tierAssigner } from '../utils/helpers/tier.helper';
-import { connectToDb } from '../utils/helpers/mongoose.helper';
+import { Tier } from '../entities/tier.entity';
+import { Account } from '../entities/account.entity';
+import { connectToDatabase } from '../utils/helpers/db.helper';
 
 async function tierDistribution() {
-  await connectToDb();
+  await connectToDatabase();
 
-  await TierModel.deleteMany();
-  await Promise.all(tiers.map(async (tier) => await TierModel.create(tier)));
+  const accountRepository = getRepository(Account);
+  const tierRepository = getRepository(Tier);
 
-  const accounts = (await AccountModel.find().populate({
-    path: 'activity',
-    model: ActivityModel,
-  })) as AccountDocument[];
-  const tiersCreated = (await TierModel.find().lean()) as TierDocument[];
+  await tierRepository.createQueryBuilder('tier').delete().from(Tier).where('id = :id', { id: 1 }).execute();
+  await tierRepository.save(tiers);
 
+  const accounts = await accountRepository
+    .createQueryBuilder('account')
+    .leftJoinAndSelect('account.activity', 'activities')
+    .getMany();
+
+  const tiersCreated = await tierRepository.find();
   const assignedTiers = await tierAssigner(accounts, tiersCreated);
-  await Promise.all(accounts.map(async (account) => account.save()));
 
+  await accountRepository.save(accounts);
   process.exit(0);
 }
 

@@ -1,13 +1,13 @@
 import Web3 from 'web3';
-import { approveToken, getAbiByRelativePath, getSwapDeadline } from '../../utils/helpers';
+import { getAbiByRelativePath, getSwapDeadline } from '../../utils/helpers';
 import { Swap } from './swap.module.ts';
 
-export const SPACEFI_SUPPORTED_COINS = ['ETH', 'USDC', 'WBTC'];
-export const SPACEFI_ROUTER_CONTRACT_ADDR = Web3.utils.toChecksumAddress('0xbE7D1FD1f6748bbDefC4fbaCafBb11C6Fc506d1d');
+export const VELOCORE_SUPPORTED_COINS = ['ETH', 'USDC', 'WBTC'];
+export const VELOCORE_ROUTER_CONTRACT_ADDR = Web3.utils.toChecksumAddress('0xd999e16e68476bc749a28fc14a0c3b6d7073f50c');
 
-export class SpaceFiSwap extends Swap {
+export class VelocoreSwap extends Swap {
   constructor(privateKey) {
-    super(privateKey, 'SpaceFi', SPACEFI_ROUTER_CONTRACT_ADDR, SPACEFI_SUPPORTED_COINS);
+    super(privateKey, 'Velocore', VELOCORE_ROUTER_CONTRACT_ADDR, VELOCORE_SUPPORTED_COINS);
   }
 
   async swap(fromToken, toToken, amountFrom, amountTo) {
@@ -22,33 +22,34 @@ export class SpaceFiSwap extends Swap {
 
       const swapDeadline = await getSwapDeadline(this.web3);
 
-      const path = [fromTokenContractAddress, toTokenContractAddress];
+      const velocoreAbi = getAbiByRelativePath('../abi/velocoreRouter.json');
+      const velocoreRouter = new this.web3.eth.Contract(velocoreAbi, this.protocolRouterContract);
 
-      const spaceFiAbi = getAbiByRelativePath('../abi/spaceFiRouter.json');
-      const spaceFiRouter = new this.web3.eth.Contract(spaceFiAbi, this.protocolRouterContract);
+      const path = [fromTokenContractAddress, toTokenContractAddress];
+      const steps = [path];
 
       let swapFunctionCall;
 
       if (fromToken === 'ETH') {
-        swapFunctionCall = spaceFiRouter.methods.swapExactETHForTokensSupportingFeeOnTransferTokens(
+        swapFunctionCall = velocoreRouter.methods.swapExactETHForTokens(
           minOutAmountWithPrecision,
-          path,
+          steps,
           this.walletAddress,
           swapDeadline
         );
       } else if (toToken === 'ETH') {
-        swapFunctionCall = spaceFiRouter.methods.swapExactTokensForETHSupportingFeeOnTransferTokens(
+        swapFunctionCall = velocoreRouter.methods.swapExactTokensForETH(
           amountWithPrecision,
           minOutAmountWithPrecision,
-          path,
+          steps,
           this.walletAddress,
           swapDeadline
         );
       } else {
-        swapFunctionCall = spaceFiRouter.methods.swapExactTokensForTokensSupportingFeeOnTransferTokens(
+        swapFunctionCall = velocoreRouter.methods.swapExactTokensForTokens(
           amountWithPrecision,
           minOutAmountWithPrecision,
-          path,
+          steps,
           this.walletAddress,
           swapDeadline
         );

@@ -1,7 +1,7 @@
+import { Account } from '../../entities/account.entity';
+import { Tier } from '../../entities/tier.entity';
 import { tierAssignmentActivityPriorities } from '../const/config.const';
 import { tierDistributionInPercents, tiers } from '../const/tiers.const';
-import { Account } from '../entities/account.entity';
-import { TierDocument } from '../entities/tier.entity';
 
 export type ActivityType =
   | 'Official Bridge'
@@ -96,14 +96,14 @@ const tierCalculator = (accountAmount: number) => {
   return tiersToAccountAmount;
 };
 
-export const getTierToTierRankMap = (tiers: TierDocument[]) => {
-  const result: Record<string, TierDocument> = {};
+export const getTierToTierRankMap = (tiers: Tier[]) => {
+  const result: Record<string, Tier> = {};
   tiers.forEach((tier) => (result[tier.tierRank] = tier));
 
   return result;
 };
 
-export const tierAssigner = (accounts: Account[], tiers: TierDocument[]) => {
+export const tierAssigner = (accounts: Account[], tiers: Tier[]) => {
   const tiersToAccountAmount = tierCalculator(accounts.length);
   const accountsSortedByPriority = accounts.sort(sortingFunction).reverse();
   const tierMap = getTierToTierRankMap(tiers);

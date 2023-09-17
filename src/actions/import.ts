@@ -3,13 +3,16 @@ import { ZkSyncActivityModule } from '../modules/checkers/zksync-activity.module
 import { importETHWallets, importProxies } from '../utils/helpers';
 import { log } from '../utils/logger/logger';
 import { ERA } from '../utils/const/chains.const';
-import { AccountModel } from '../utils/entities/account.entity';
-import { connectToDb } from '../utils/helpers/mongoose.helper';
-import { base64Encode } from '../utils/helpers/encode.helper';
-import { ActivityModel } from '../utils/entities/activities.entity';
+import { Account } from '../entities/account.entity';
+import { AccountActivity } from '../entities/activities.entity';
+import { connectToDatabase } from '../utils/helpers/db.helper';
+import { getRepository } from 'typeorm';
 
 async function importAccounts() {
-  await connectToDb();
+  await connectToDatabase();
+
+  const accountRepository = getRepository(Account);
+  const activityRepository = getRepository(AccountActivity);
 
   const ethWallets = await importETHWallets();
   const proxies = await importProxies();
@@ -24,30 +27,27 @@ async function importAccounts() {
 
   for (let i = 0; i < ethWallets.length; i++) {
     const privateKey = ethWallets[i];
-    const walletAddr = web3.eth.accounts.privateKeyToAccount(privateKey).address;
+    const walletAddress = web3.eth.accounts.privateKeyToAccount(privateKey).address;
 
-    const existingAccount = await AccountModel.find({ walletAddress: walletAddr }).lean();
+    const existingAccount = await accountRepository.findOneBy({ walletAddress });
 
-    if (existingAccount.length) {
-      log('Account DB Import', `${walletAddr}: Already in the DB.`);
+    if (existingAccount) {
+      log('Account DB Import', `${walletAddress}: Already in the DB.`);
       continue;
     }
 
-    const walletActivity = await checker.getActivity(walletAddr);
+    const walletActivity = await checker.getActivity(walletAddress);
+    const activity = await activityRepository.save(walletActivity);
 
-    const activity = new ActivityModel(walletActivity);
-
-    const account = new AccountModel({
-      privateKey: base64Encode(privateKey),
-      walletAddress: walletAddr,
+    const account = {
+      privateKey,
+      walletAddress,
       activity,
       tier: null,
-    });
+    };
 
-    await activity.save();
-    await account.save();
-
-    log('Account DB Import', `${walletAddr}: Saved to DB.`);
+    await accountRepository.save(account);
+    log('Account DB Import', `${walletAddress}: Saved to DB.`);
   }
 
   process.exit(0);
