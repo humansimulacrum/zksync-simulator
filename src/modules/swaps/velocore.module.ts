@@ -1,6 +1,6 @@
 import Web3 from 'web3';
 import { getAbiByRelativePath, getSwapDeadline } from '../../utils/helpers';
-import { Swap } from './swap.module.ts';
+import { Swap } from './swap.module';
 
 export const VELOCORE_SUPPORTED_COINS = ['ETH', 'USDC', 'WBTC'];
 export const VELOCORE_ROUTER_CONTRACT_ADDR = Web3.utils.toChecksumAddress('0xd999e16e68476bc749a28fc14a0c3b6d7073f50c');
