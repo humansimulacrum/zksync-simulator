@@ -5,7 +5,7 @@ import { ERA } from '../utils/const/chains.const';
 import { log } from '../utils/logger/logger';
 import { updateActivity } from '../utils/helpers/activity.helper';
 import { getRepository } from 'typeorm';
-import { Account } from '../entities/account.entity';
+import { Account } from '../entity/account.entity';
 import { connectToDatabase } from '../utils/helpers/db.helper';
 
 async function updateActivityAll() {

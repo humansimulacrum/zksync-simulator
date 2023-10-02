@@ -3,16 +3,15 @@ import { ZkSyncActivityModule } from '../modules/checkers/zksync-activity.module
 import { importETHWallets, importProxies } from '../utils/helpers';
 import { log } from '../utils/logger/logger';
 import { ERA } from '../utils/const/chains.const';
-import { Account } from '../entities/account.entity';
-import { AccountActivity } from '../entities/activities.entity';
+import { Account } from '../entity/account.entity';
+import { AccountActivity } from '../entity/activities.entity';
 import { connectToDatabase } from '../utils/helpers/db.helper';
 import { getRepository } from 'typeorm';
+import { AccountRepository } from '../repositories/account.repository';
+import { ActivityRepository } from '../repositories/activity.repository';
 
 async function importAccounts() {
   await connectToDatabase();
-
-  const accountRepository = getRepository(Account);
-  const activityRepository = getRepository(AccountActivity);
 
   const ethWallets = await importETHWallets();
   const proxies = await importProxies();
@@ -29,7 +28,7 @@ async function importAccounts() {
     const privateKey = ethWallets[i];
     const walletAddress = web3.eth.accounts.privateKeyToAccount(privateKey).address;
 
-    const existingAccount = await accountRepository.findOneBy({ walletAddress });
+    const existingAccount = await AccountRepository.findOneBy({ walletAddress });
 
     if (existingAccount) {
       log('Account DB Import', `${walletAddress}: Already in the DB.`);
@@ -37,7 +36,7 @@ async function importAccounts() {
     }
 
     const currentActivityInfo = await checker.getActivity(walletAddress);
-    const activity = await activityRepository.save(currentActivityInfo);
+    const activity = await ActivityRepository.save(currentActivityInfo);
 
     const createAccountPayload = {
       privateKey,
@@ -46,10 +45,8 @@ async function importAccounts() {
       tier: null,
     };
 
-    const createdAccount = await accountRepository.save(createAccountPayload);
-
-    activity.account = createdAccount;
-    await activityRepository.update({ id: activity.id }, { account: createdAccount });
+    const createdAccount = await AccountRepository.save(createAccountPayload);
+    await ActivityRepository.updateById(activity.id, { account: createdAccount });
 
     log('Account DB Import', `${walletAddress}: Saved to DB.`);
   }

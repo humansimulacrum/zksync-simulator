@@ -1,5 +1,5 @@
-import { Account } from '../../entities/account.entity';
-import { Tier } from '../../entities/tier.entity';
+import { Account } from '../../entity/account.entity';
+import { Tier } from '../../entity/tier.entity';
 import { tierAssignmentActivityPriorities } from '../const/config.const';
 import { tierDistributionInPercents, tiers } from '../const/tiers.const';
 
@@ -12,58 +12,23 @@ export type ActivityType =
   | 'Volume'
   | 'Smart Contract Amount';
 
-const activityToActivityPriorityMatcher = (account: Account) => {
-  const { activity } = account;
-  return tierAssignmentActivityPriorities.map((activityType) => {
-    if (activityType === 'Official Bridge') {
-      return activity.officialBridge;
-    }
+export function tierAssigner(accounts: Account[], tiers: Tier[]) {
+  const tiersToAccountAmount = getTierToAccountAmount(accounts.length);
+  const accountsSortedByPriority = accounts.sort(sortByActivityPriority).reverse();
+  const tierMap = getTierToTierRankMap(tiers);
 
-    if (activityType === 'Transactions') {
-      return activity.transactionCount;
+  let currentAccountPointer = 0;
+  Object.entries(tiersToAccountAmount).forEach(([tierRank, accountAmount]) => {
+    for (let i = 0; i < accountAmount; i++) {
+      accountsSortedByPriority[currentAccountPointer].tier = tierMap[tierRank];
+      currentAccountPointer++;
     }
-
-    if (activityType === 'Rank') {
-      return activity.rank * -1;
-    }
-
-    if (activityType === 'ZkDomain') {
-      return activity.zkSyncDomain;
-    }
-
-    return false;
   });
-};
 
-const sortingFunction = (accountA, accountB) => {
-  const activityPriorityA = activityToActivityPriorityMatcher(accountA);
-  const activityPriorityB = activityToActivityPriorityMatcher(accountB);
+  return accountsSortedByPriority;
+}
 
-  for (let i = 0; i < activityPriorityA.length; i++) {
-    const activityResultA = activityPriorityA[i];
-    const activityResultB = activityPriorityB[i];
-
-    if (typeof activityResultA === 'number' && typeof activityResultB === 'number') {
-      if (activityResultA === activityResultB) continue;
-
-      // On the rank and negative comparisons that's the only way to go
-      if (!activityResultA) return 1;
-      if (!activityResultB) return -1;
-
-      return activityResultA - activityResultB;
-    }
-
-    if (typeof activityResultA === 'boolean' && typeof activityResultB === 'boolean') {
-      if (activityResultA === activityResultB) continue;
-      if (activityResultA) return 1;
-      if (activityResultB) return -1;
-    }
-  }
-
-  return 0;
-};
-
-const tierCalculator = (accountAmount: number) => {
+function getTierToAccountAmount(accountAmount: number): Record<string, number> {
   const tiersToAccountAmount: Record<string, number> = {};
   let tierDistributedAccounts = 0;
 
@@ -94,27 +59,62 @@ const tierCalculator = (accountAmount: number) => {
   }
 
   return tiersToAccountAmount;
-};
+}
 
-export const getTierToTierRankMap = (tiers: Tier[]) => {
+function getTierToTierRankMap(tiers: Tier[]) {
   const result: Record<string, Tier> = {};
   tiers.forEach((tier) => (result[tier.tierRank] = tier));
 
   return result;
-};
+}
 
-export const tierAssigner = (accounts: Account[], tiers: Tier[]) => {
-  const tiersToAccountAmount = tierCalculator(accounts.length);
-  const accountsSortedByPriority = accounts.sort(sortingFunction).reverse();
-  const tierMap = getTierToTierRankMap(tiers);
+function sortByActivityPriority(accountA, accountB) {
+  const activityPriorityA = activityToActivityPriorityMatcher(accountA);
+  const activityPriorityB = activityToActivityPriorityMatcher(accountB);
 
-  let currentAccountPointer = 0;
-  Object.entries(tiersToAccountAmount).forEach(([tierRank, accountAmount]) => {
-    for (let i = 0; i < accountAmount; i++) {
-      accountsSortedByPriority[currentAccountPointer].tier = tierMap[tierRank];
-      currentAccountPointer++;
+  for (let i = 0; i < activityPriorityA.length; i++) {
+    const activityResultA = activityPriorityA[i];
+    const activityResultB = activityPriorityB[i];
+
+    if (typeof activityResultA === 'number' && typeof activityResultB === 'number') {
+      if (activityResultA === activityResultB) continue;
+
+      // On the rank and negative comparisons that's the only way to go
+      if (!activityResultA) return 1;
+      if (!activityResultB) return -1;
+
+      return activityResultA - activityResultB;
     }
-  });
 
-  return accountsSortedByPriority;
-};
+    if (typeof activityResultA === 'boolean' && typeof activityResultB === 'boolean') {
+      if (activityResultA === activityResultB) continue;
+      if (activityResultA) return 1;
+      if (activityResultB) return -1;
+    }
+  }
+
+  return 0;
+}
+
+function activityToActivityPriorityMatcher(account: Account) {
+  const { activity } = account;
+  return tierAssignmentActivityPriorities.map((activityType) => {
+    if (activityType === 'Official Bridge') {
+      return activity.officialBridge;
+    }
+
+    if (activityType === 'Transactions') {
+      return activity.transactionCount;
+    }
+
+    if (activityType === 'Rank') {
+      return activity.rank * -1;
+    }
+
+    if (activityType === 'ZkDomain') {
+      return activity.zkSyncDomain;
+    }
+
+    return false;
+  });
+}

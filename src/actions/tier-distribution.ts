@@ -1,28 +1,27 @@
-import { getRepository } from 'typeorm';
+import { Repository, getRepository } from 'typeorm';
 import { tiers } from '../utils/const/tiers.const';
 import { tierAssigner } from '../utils/helpers/tier.helper';
-import { Tier } from '../entities/tier.entity';
-import { Account } from '../entities/account.entity';
+import { Tier } from '../entity/tier.entity';
+import { Account } from '../entity/account.entity';
 import { connectToDatabase } from '../utils/helpers/db.helper';
+import { TierRepository } from '../repositories/tier.repository';
+import { AppDataSource } from '../data-source';
+import { AccountRepository } from '../repositories/account.repository';
 
 async function tierDistribution() {
   await connectToDatabase();
 
-  const accountRepository = getRepository(Account);
-  const tierRepository = getRepository(Tier);
+  await AccountRepository.removeAllAssignedTiers();
+  await TierRepository.removeAllExistingTiers();
 
-  await tierRepository.createQueryBuilder('tier').delete().from(Tier).where('id = :id', { id: 1 }).execute();
-  await tierRepository.save(tiers);
+  await TierRepository.addNewTiersFromConfig();
 
-  const accounts = await accountRepository
-    .createQueryBuilder('account')
-    .leftJoinAndSelect('account.activity', 'activities')
-    .getMany();
+  const accountsWithActivities = await AccountRepository.getAccountsWithActivities();
+  const tiersCreated = await TierRepository.getAllTiers();
 
-  const tiersCreated = await tierRepository.find();
-  const assignedTiers = await tierAssigner(accounts, tiersCreated);
+  const accountsWithAssignedTiers = await tierAssigner(accountsWithActivities, tiersCreated);
 
-  await accountRepository.save(accounts);
+  await AccountRepository.save(accountsWithAssignedTiers);
   process.exit(0);
 }
 

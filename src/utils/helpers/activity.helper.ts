@@ -1,7 +1,7 @@
 import { getRepository } from 'typeorm';
-import { Account } from '../../entities/account.entity';
+import { Account } from '../../entity/account.entity';
 import { ZkSyncActivityModule } from '../../modules/checkers/zksync-activity.module';
-import { AccountActivity } from '../../entities/activities.entity';
+import { AccountActivity } from '../../entity/activities.entity';
 
 export const updateActivity = async (account: Account, activityModule: ZkSyncActivityModule) => {
   const activityRepository = getRepository(AccountActivity);

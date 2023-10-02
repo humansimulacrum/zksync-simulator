@@ -1,5 +1,5 @@
-import { Account } from '../../entities/account.entity';
-import { AccountActivity } from '../../entities/activities.entity';
+import { Account } from '../../entity/account.entity';
+import { AccountActivity } from '../../entity/activities.entity';
 
 export interface AccountPopulated {
   activity: AccountActivity;

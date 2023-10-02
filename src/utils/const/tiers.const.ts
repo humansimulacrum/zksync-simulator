@@ -1,4 +1,4 @@
-import { Tier } from '../../entities/tier.entity';
+import { Tier } from '../../entity/tier.entity';
 
 type TierPayload = Omit<Tier, 'accounts' | 'id'>;
 

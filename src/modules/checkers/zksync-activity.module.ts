@@ -4,7 +4,7 @@ import { fetchData, postData } from '../../utils/helpers/fetch.helper';
 import { log } from '../../utils/logger/logger';
 import { TransactionDataItem } from '../../utils/interfaces/transaction-item.interface';
 import { getRepository } from 'typeorm';
-import { AccountActivity } from '../../entities/activities.entity';
+import { AccountActivity } from '../../entity/activities.entity';
 
 export class ZkSyncActivityModule {
   moduleName = 'ZkSyncActivityModule';

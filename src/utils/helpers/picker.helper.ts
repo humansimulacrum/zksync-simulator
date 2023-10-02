@@ -1,6 +1,6 @@
 import { getRepository } from 'typeorm';
 import { shuffle } from '.';
-import { Account } from '../../entities/account.entity';
+import { Account } from '../../entity/account.entity';
 import { accountsInBatch, daysBetweenTransactionsOnAccount, shuffleWallets } from '../const/config.const';
 import { getDaysAgo } from './date.helper';
 
