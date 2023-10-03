@@ -1,10 +1,8 @@
-import { getRepository } from 'typeorm';
 import { Account } from '../../entity/account.entity';
-import { ZkSyncActivityModule } from '../../modules/checkers/zksync-activity.module';
-import { AccountActivity } from '../../entity/activities.entity';
+import { ActivityModule } from '../../modules/checkers/activity.module';
+import { ActivityRepository } from '../../repositories/activity.repository';
 
-export const updateActivity = async (account: Account, activityModule: ZkSyncActivityModule) => {
-  const activityRepository = getRepository(AccountActivity);
+export const updateActivity = async (account: Account, activityModule: ActivityModule) => {
   const updatedActivity = await activityModule.getActivity(account.walletAddress);
 
   if (updatedActivity.gasSpentInUsd && isNaN(updatedActivity.gasSpentInUsd)) {
@@ -12,8 +10,10 @@ export const updateActivity = async (account: Account, activityModule: ZkSyncAct
   }
 
   if (!account.activity) {
-    return activityRepository.create(updatedActivity);
+    return ActivityRepository.create(updatedActivity);
   }
 
-  return activityRepository.update({ id: account.activity.id }, { ...updatedActivity });
+  return ActivityRepository.update({ id: account.activity.id }, { ...updatedActivity });
 };
+
+// TODO: Remove update duplication, strip out account update code into the repo

@@ -1,10 +1,9 @@
-import { Debank } from '../../modules/checkers/debank.module';
 import { Swap } from '../../modules/swaps/swap.module';
 import { minAmountOfTokenToSwapInUsd } from '../const/config.const';
 import { choose } from './random.helper';
 import { sleepLogWrapper } from './sleep.helper';
 
-export const calculateSwapParameters = async (swapInstance: Swap, debankInstance: Debank) => {
+export const calculateSwapParameters = async (swapInstance: Swap) => {
   const swapChain = swapInstance.chain.name;
   const walletAddr = swapInstance.walletAddress;
 

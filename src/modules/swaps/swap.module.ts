@@ -5,7 +5,7 @@ import { Chain, ERA } from '../../utils/const/chains.const';
 import {
   approveToken,
   getAmountWithPrecision,
-  getBalanceWithTokenContract,
+  getBalanceAndDecimalsWithTokenContract,
   getMinOutAmount,
   randomFloatInRange,
 } from '../../utils/helpers';
@@ -60,7 +60,13 @@ export class Swap {
     if (fromToken === 'ETH') {
       balanceInFromToken = await this.web3.eth.getBalance(this.walletAddress);
     } else {
-      balanceInFromToken = await getBalanceWithTokenContract(fromTokenContractAddress, this.walletAddress, this.web3);
+      const { tokenBalance } = await getBalanceAndDecimalsWithTokenContract(
+        fromTokenContractAddress,
+        this.walletAddress,
+        this.web3
+      );
+
+      balanceInFromToken = tokenBalance;
     }
 
     const amountWithPrecision = String(await getAmountWithPrecision(fromTokenContractAddress, amountToSwap, this.web3));

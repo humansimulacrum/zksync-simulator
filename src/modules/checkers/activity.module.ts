@@ -4,21 +4,19 @@ import { fetchData, postData } from '../../utils/helpers/fetch.helper';
 import { log } from '../../utils/logger/logger';
 import { TransactionDataItem } from '../../utils/interfaces/transaction-item.interface';
 import { getRepository } from 'typeorm';
-import { AccountActivity } from '../../entity/activities.entity';
+import { Activity } from '../../entity/activities.entity';
 
-export class ZkSyncActivityModule {
-  moduleName = 'ZkSyncActivityModule';
+export class ActivityModule {
+  moduleName = 'ActivityModule';
   proxies: string[];
   web3: Web3;
-
-  activityRepo = getRepository(AccountActivity);
 
   constructor(proxies: string[], web3: Web3) {
     this.proxies = proxies;
     this.web3 = web3;
   }
 
-  async getActivity(walletAddr: string): Promise<Partial<AccountActivity>> {
+  async getActivity(walletAddr: string): Promise<Partial<Activity>> {
     const transactionCount = await this.getTransactionCount(walletAddr);
 
     if (!transactionCount) {

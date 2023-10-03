@@ -1,5 +1,5 @@
 import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { AccountActivity } from './activities.entity';
+import { Activity } from './activities.entity';
 import { Tier } from './tier.entity';
 
 @Entity()
@@ -13,9 +13,9 @@ export class Account {
   @Column()
   privateKey: string;
 
-  @OneToOne(() => AccountActivity)
+  @OneToOne(() => Activity)
   @JoinColumn()
-  activity: AccountActivity;
+  activity: Activity | null;
 
   @ManyToOne(() => Tier)
   @JoinColumn()

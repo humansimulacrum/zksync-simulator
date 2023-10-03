@@ -1,9 +1,9 @@
 import { AppDataSource } from '../data-source';
 import { Account } from '../entity/account.entity';
-import { AccountActivity } from '../entity/activities.entity';
+import { Activity } from '../entity/activities.entity';
 
-export const ActivityRepository = AppDataSource.getRepository(AccountActivity).extend({
-  updateById(id: string, payload: Partial<AccountActivity>) {
+export const ActivityRepository = AppDataSource.getRepository(Activity).extend({
+  updateById(id: string, payload: Partial<Activity>) {
     return this.update({ id }, payload);
   },
 });

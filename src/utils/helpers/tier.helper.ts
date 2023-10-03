@@ -13,8 +13,10 @@ export type ActivityType =
   | 'Smart Contract Amount';
 
 export function tierAssigner(accounts: Account[], tiers: Tier[]) {
-  const tiersToAccountAmount = getTierToAccountAmount(accounts.length);
-  const accountsSortedByPriority = accounts.sort(sortByActivityPriority).reverse();
+  const accountsWithActivityPopulated = accounts.filter((account) => account.activity);
+
+  const tiersToAccountAmount = getTierToAccountAmount(accountsWithActivityPopulated.length);
+  const accountsSortedByPriority = accountsWithActivityPopulated.sort(sortByActivityPriority).reverse();
   const tierMap = getTierToTierRankMap(tiers);
 
   let currentAccountPointer = 0;
@@ -100,19 +102,19 @@ function activityToActivityPriorityMatcher(account: Account) {
   const { activity } = account;
   return tierAssignmentActivityPriorities.map((activityType) => {
     if (activityType === 'Official Bridge') {
-      return activity.officialBridge;
+      return activity!.officialBridge;
     }
 
     if (activityType === 'Transactions') {
-      return activity.transactionCount;
+      return activity!.transactionCount;
     }
 
     if (activityType === 'Rank') {
-      return activity.rank * -1;
+      return activity!.rank * -1;
     }
 
     if (activityType === 'ZkDomain') {
-      return activity.zkSyncDomain;
+      return activity!.zkSyncDomain;
     }
 
     return false;

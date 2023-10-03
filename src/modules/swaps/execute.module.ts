@@ -7,14 +7,14 @@ import { SyncSwap } from './syncswap.module';
 
 const SWAPS = [SyncSwap, SpaceFiSwap, MuteSwap];
 
-export const executeSwap = async (account, debankInstance, activityModule) => {
+export const executeSwap = async (account, activityModule) => {
   const swapClass = choose(SWAPS);
   const swapInstance = new swapClass(account.privateKey);
   let swapParams;
 
   try {
     while (!swapParams) {
-      swapParams = await calculateSwapParameters(swapInstance, debankInstance);
+      swapParams = await calculateSwapParameters(swapInstance);
     }
 
     await swapInstance.swap(swapParams.fromToken, swapParams.toToken, swapParams.amountFrom, swapParams.amountTo);

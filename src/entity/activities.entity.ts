@@ -2,7 +2,7 @@ import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'ty
 import { Account } from './account.entity';
 
 @Entity()
-export class AccountActivity {
+export class Activity {
   @PrimaryGeneratedColumn()
   id: string;
 
