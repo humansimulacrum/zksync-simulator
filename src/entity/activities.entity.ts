@@ -25,6 +25,6 @@ export class Activity {
   zkSyncDomain: boolean;
 
   @OneToOne(() => Account)
-  @JoinColumn()
+  @JoinColumn({ name: 'accountId' })
   account: Account;
 }

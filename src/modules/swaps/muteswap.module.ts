@@ -7,11 +7,11 @@ export const MUTE_ROUTER_CONTRACT_ADDR = Web3.utils.toChecksumAddress('0x8B79191
 export const MUTE_SUPPORTED_COINS = ['ETH', 'USDC', 'WBTC'];
 
 export class MuteSwap extends Swap {
-  constructor(privateKey) {
+  constructor(privateKey: string) {
     super(privateKey, 'Mute', MUTE_ROUTER_CONTRACT_ADDR, MUTE_SUPPORTED_COINS);
   }
 
-  async swap(fromToken, toToken, amountFrom, amountTo) {
+  async swap(fromToken: string, toToken: string, amountFrom, amountTo) {
     try {
       const {
         fromTokenContractAddress,

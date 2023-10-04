@@ -10,3 +10,4 @@ export * from './swap.helper';
 export * from './time.helper';
 export * from './token-approve.helper';
 export * from './token-conversion.helper';
+export * from './db.helper';

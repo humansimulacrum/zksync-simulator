@@ -14,10 +14,10 @@ export class Account {
   privateKey: string;
 
   @OneToOne(() => Activity)
-  @JoinColumn()
+  @JoinColumn({ name: 'activityId' })
   activity: Activity | null;
 
   @ManyToOne(() => Tier)
-  @JoinColumn()
+  @JoinColumn({ name: 'tierId' })
   tier: Tier | null;
 }

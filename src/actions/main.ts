@@ -11,24 +11,20 @@ import { Account } from '../entity/account.entity';
 
 export async function main() {
   await connectToDatabase();
-
-  const proxies = await importProxies();
-  const accounts = await accountPicker();
-
   const web3 = new Web3(ERA.rpc);
 
-  const activityModule = new ActivityModule(proxies, web3);
+  const accounts = await accountPicker();
 
   for (let i = 0; i < accounts.length; i++) {
-    await executeActivity(accounts[i], web3, activityModule);
+    await executeAction(accounts[i], web3);
   }
 
   process.exit(0);
 }
 
-async function executeActivity(account: Account, web3: Web3, activityModule: ActivityModule) {
+async function executeAction(account: Account, web3: Web3) {
   await waitForGas(web3, account.walletAddress);
-  await executeSwap(account, activityModule);
+  await executeSwap(account);
 
   const sleepDuration = randomIntInRange(sleepBetweenWalletsFrom, sleepBetweenWalletsTo);
   await sleepLogWrapper(sleepDuration * 1000, ethers.constants.AddressZero, 'between wallets.');

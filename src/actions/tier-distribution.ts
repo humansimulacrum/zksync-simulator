@@ -1,7 +1,6 @@
 import { tierAssigner } from '../utils/helpers/tier.helper';
 import { connectToDatabase } from '../utils/helpers/db.helper';
-import { TierRepository } from '../repositories/tier.repository';
-import { AccountRepository } from '../repositories/account.repository';
+import { AccountRepository, TierRepository } from '../repositories';
 
 async function tierDistribution() {
   await connectToDatabase();

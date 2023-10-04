@@ -1,19 +1,28 @@
 import Web3 from 'web3';
-import { choose, getTokenPriceCryptoCompare } from '../../utils/helpers';
+import { choose, getTokenPriceCryptoCompare, importProxies } from '../../utils/helpers';
 import { fetchData, postData } from '../../utils/helpers/fetch.helper';
 import { log } from '../../utils/logger/logger';
 import { TransactionDataItem } from '../../utils/interfaces/transaction-item.interface';
-import { getRepository } from 'typeorm';
 import { Activity } from '../../entity/activities.entity';
+import { ActivityRepository } from '../../repositories/activity.repository';
+import { Account } from '../../entity/account.entity';
+import { ERA } from '../../utils/const/chains.const';
 
 export class ActivityModule {
   moduleName = 'ActivityModule';
   proxies: string[];
   web3: Web3;
 
-  constructor(proxies: string[], web3: Web3) {
+  private constructor(proxies: string[], web3: Web3) {
     this.proxies = proxies;
     this.web3 = web3;
+  }
+
+  static async create(): Promise<ActivityModule> {
+    const proxies = await importProxies();
+    const web3 = new Web3(ERA.rpc);
+
+    return new ActivityModule(proxies, web3);
   }
 
   async getActivity(walletAddr: string): Promise<Partial<Activity>> {
@@ -42,6 +51,16 @@ export class ActivityModule {
     };
   }
 
+  async actualizeActivity(account: Account): Promise<Activity> {
+    const currentActivity = await this.getActivity(account.walletAddress);
+
+    if (!account.activity) {
+      return ActivityRepository.create(currentActivity);
+    }
+
+    return ActivityRepository.updateAndReturnOneById(account.activity.id, { ...currentActivity });
+  }
+
   private async getTransactionCount(walletAddr: string) {
     const transactionCount = await this.web3.eth.getTransactionCount(walletAddr);
     return transactionCount;
@@ -55,7 +74,13 @@ export class ActivityModule {
 
     const etherPrice = await getTokenPriceCryptoCompare('ETH');
 
-    return Number(Web3.utils.fromWei(String(sumInWei), 'ether')) * etherPrice;
+    let gasSpentInUsd = Number(Web3.utils.fromWei(String(sumInWei), 'ether')) * etherPrice;
+
+    if (gasSpentInUsd && isNaN(gasSpentInUsd)) {
+      gasSpentInUsd = 0;
+    }
+
+    return gasSpentInUsd;
   }
 
   private async getLastTransactionDate(transactions: TransactionDataItem[]) {

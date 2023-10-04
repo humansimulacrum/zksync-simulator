@@ -25,7 +25,7 @@ export class Swap {
   account: Account;
   walletAddress: string;
 
-  constructor(privateKey, protocolName, protocolRouterContract, supportedCoins) {
+  constructor(privateKey: string, protocolName: string, protocolRouterContract: string, supportedCoins: string[]) {
     this.protocolName = protocolName;
     this.protocolRouterContract = protocolRouterContract;
     this.supportedCoins = supportedCoins;
@@ -38,7 +38,7 @@ export class Swap {
     this.walletAddress = this.account.address;
   }
 
-  async prepareTokens(fromToken, toToken, amountFrom, amountTo) {
+  async prepareTokens(fromToken: string, toToken: string, amountFrom, amountTo) {
     if (!this.supportedCoins.includes(fromToken) || !this.supportedCoins.includes(toToken)) {
       throw new Error(`Not supported token pair ${fromToken}->${toToken}`);
     }
