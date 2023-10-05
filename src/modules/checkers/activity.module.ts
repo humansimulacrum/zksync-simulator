@@ -7,6 +7,7 @@ import { Activity } from '../../entity/activities.entity';
 import { ActivityRepository } from '../../repositories/activity.repository';
 import { Account } from '../../entity/account.entity';
 import { ERA } from '../../utils/const/chains.const';
+import { fromWei } from '../../utils/helpers/wei.helper';
 
 export class ActivityModule {
   moduleName = 'ActivityModule';
@@ -74,7 +75,7 @@ export class ActivityModule {
 
     const etherPrice = await getTokenPriceCryptoCompare('ETH');
 
-    let gasSpentInUsd = Number(Web3.utils.fromWei(String(sumInWei), 'ether')) * etherPrice;
+    let gasSpentInUsd = fromWei(sumInWei) * etherPrice;
 
     if (gasSpentInUsd && isNaN(gasSpentInUsd)) {
       gasSpentInUsd = 0;

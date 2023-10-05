@@ -1,23 +1,24 @@
+import Web3 from 'web3';
 import { maxGwei, sleepOnHighGas } from '../const/config.const';
 import { log } from '../logger/logger';
 import { sleepLogWrapper } from './sleep.helper';
 
-export const isGasOkay = async (web3, ethAddress) => {
+export const isGasOkay = async (web3: Web3, walletAddress: string) => {
   const baseFee = (await web3.eth.getBlock('latest')).baseFeePerGas;
   const currentGas = Number(web3.utils.fromWei(String(baseFee), 'Gwei'));
 
   const isGasHigher = currentGas <= maxGwei;
 
   if (!isGasHigher) {
-    log('Gas Checker', `${ethAddress}: gas is too high. ${currentGas} gwei now vs ${maxGwei} gwei limit.`);
+    log('Gas Checker', `${walletAddress}: gas is too high. ${currentGas} gwei now vs ${maxGwei} gwei limit.`);
 
-    await sleepLogWrapper(sleepOnHighGas * 1000, ethAddress, 'on high gas.');
+    await sleepLogWrapper(sleepOnHighGas * 1000, walletAddress, 'on high gas.');
   }
 
   return isGasHigher;
 };
 
-export const waitForGas = async (web3, walletAddress) => {
+export const waitForGas = async (web3: Web3, walletAddress: string) => {
   let gasOkay = false;
   while (!gasOkay) {
     gasOkay = await isGasOkay(web3, walletAddress);

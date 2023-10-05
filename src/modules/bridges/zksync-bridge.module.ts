@@ -6,128 +6,116 @@ import { AbiItem } from 'web3-utils';
 import { Provider } from 'zksync-web3';
 import { ethers } from 'ethers';
 
-import { Chain, ERA, ETH } from '../../utils/const/chains.const';
+import { ERA, ETH } from '../../utils/const/chains.const';
 import { getAbiByRelativePath, randomFloatInRange } from '../../utils/helpers';
 import { log } from '../../utils/logger/logger';
-import { maxPriorityFeePerGas } from '../../utils/const/config.const';
+import { toWei } from '../../utils/helpers/wei.helper';
+import { Transaction } from '../checkers/transaction.module';
+import { ExecutableModule } from '../executor.module';
+import { TokenModule } from '../checkers/token.module';
+import { partOfEthToBridgeMax, partOfEthToBridgeMin } from '../../utils/const/config.const';
 
 export const ZKSYNC_BRIDGE_CONTRACT_ADDR = Web3.utils.toChecksumAddress('0x32400084C286CF3E17e7B677ea9583e60a000324');
 
-export class ZkSyncBridge {
+export class ZkSyncBridge implements ExecutableModule {
   protocolName: string;
-  chain: Chain;
   web3: Web3;
 
-  privateKey: string;
   account: Account;
   walletAddress: string;
 
-  contractAddr: string;
+  contractAddress: string;
   contractAbi: AbiItem[];
   contract: Contract;
 
   zkSyncProvider: Provider;
 
-  constructor(privateKey) {
+  constructor(privateKey: string) {
     this.protocolName = 'ZkSync Bridge';
-    this.chain = ETH;
-    this.web3 = new Web3(this.chain.rpc);
+    this.web3 = new Web3(ETH.rpc);
 
-    this.privateKey = privateKey;
     this.account = this.web3.eth.accounts.privateKeyToAccount(privateKey);
     this.walletAddress = this.account.address;
 
-    this.contractAddr = ZKSYNC_BRIDGE_CONTRACT_ADDR;
+    this.contractAddress = ZKSYNC_BRIDGE_CONTRACT_ADDR;
     this.contractAbi = getAbiByRelativePath('../abi/zkSyncBridge.json');
 
-    this.contract = new this.web3.eth.Contract(this.contractAbi, this.contractAddr);
+    this.contract = new this.web3.eth.Contract(this.contractAbi, this.contractAddress);
 
     this.zkSyncProvider = new Provider(ERA.rpc);
   }
 
-  async bridge(amountToBridgeMin, amountToBridgeMax) {
-    try {
-      const amountToBridgeEth = randomFloatInRange(amountToBridgeMin, amountToBridgeMax, 10);
-      const amountToBridgeWei = this.web3.utils.toWei(String(amountToBridgeEth), 'ether');
+  async execute() {
+    const balanceInMainnetReadable = await this.getBalanceInMainnet();
 
-      log(this.protocolName, `${this.walletAddress}: Sending ${amountToBridgeEth} ETH to ZkSync`);
+    const amountToBridgeMin = partOfEthToBridgeMin * balanceInMainnetReadable;
+    const amountToBridgeMax = partOfEthToBridgeMax * balanceInMainnetReadable;
 
-      const ethBalance = await this.web3.eth.getBalance(this.walletAddress);
+    await this.bridge(amountToBridgeMin, amountToBridgeMax);
+  }
 
-      // contract parameters
-      const contractAddressL2 = this.walletAddress;
-      const l2Value = amountToBridgeWei.toString();
-      const calldata = [];
-      // numbers are taken from transaction performed through UI
-      const l2GasLimit = 733664;
-      const l2GasPerPubdataByteLimit = 800;
-      const factoryDeps = [];
-      const refundRecipient = this.walletAddress;
+  async bridge(amountToBridgeMin: number, amountToBridgeMax: number) {
+    const amountToBridgeEth = randomFloatInRange(amountToBridgeMin, amountToBridgeMax, 10);
+    const amountToBridgeWei = toWei(amountToBridgeEth);
 
-      const bridgeFunctionCall = await this.contract.methods.requestL2Transaction(
-        contractAddressL2,
-        l2Value,
-        calldata,
-        l2GasLimit,
-        l2GasPerPubdataByteLimit,
-        factoryDeps,
-        refundRecipient
-      );
+    log(this.protocolName, `${this.walletAddress}: Sending ${amountToBridgeEth} ETH to ZkSync`);
 
-      const baseFee = (await this.web3.eth.getBlock('latest')).baseFeePerGas;
-      const zkGasPrice = (await this.zkSyncProvider.getGasPrice()).toString();
-      const l2BaseCost = await this.contract.methods
-        .l2TransactionBaseCost(zkGasPrice, l2GasLimit, l2GasPerPubdataByteLimit)
-        .call();
+    const contractAddressL2 = this.walletAddress;
+    const l2Value = amountToBridgeWei.toString();
+    const calldata: [] = [];
+    // numbers are taken from transaction performed through UI
+    const l2GasLimit = 733664;
+    const l2GasPerPubdataByteLimit = 800;
+    const factoryDeps: [] = [];
+    const refundRecipient = this.walletAddress;
 
-      // I don't know how to calculate that, because estimateGas doesn't work
-      // just took amount from successfull transaction and added 400
-      const estimatedGas = 150500;
+    const bridgeFunctionCall = await this.contract.methods.requestL2Transaction(
+      contractAddressL2,
+      l2Value,
+      calldata,
+      l2GasLimit,
+      l2GasPerPubdataByteLimit,
+      factoryDeps,
+      refundRecipient
+    );
 
-      const minEthNeeded = ethers.BigNumber.from(estimatedGas)
-        .mul(baseFee!)
-        .add(maxPriorityFeePerGas)
-        .add(ethers.BigNumber.from(l2BaseCost))
-        .add(ethers.BigNumber.from(l2Value));
+    const zkGasPrice = (await this.zkSyncProvider.getGasPrice()).toString();
+    const l2BaseCost = await this.contract.methods
+      .l2TransactionBaseCost(zkGasPrice, l2GasLimit, l2GasPerPubdataByteLimit)
+      .call();
 
-      if (ethers.BigNumber.from(ethBalance).lte(minEthNeeded)) {
-        log(
-          this.protocolName,
-          `${this.walletAddress}: Unsufficient balance. Balance - ${Web3.utils.fromWei(
-            String(ethBalance)
-          )}, Needed - ${Web3.utils.fromWei(String(minEthNeeded))}, `
-        );
-        return false;
-      }
+    // I don't know how to calculate that, because estimateGas doesn't work
+    // just took amount from successfull transaction and added 400
+    const estimatedGas = 150500;
+    const amountWithL2Fee = ethers.BigNumber.from(amountToBridgeWei).add(l2BaseCost);
 
-      const amountWithL2Fee = ethers.BigNumber.from(amountToBridgeWei).add(l2BaseCost);
-
-      const tx = {
-        from: this.walletAddress,
-        to: this.contractAddr,
-        nonce: await this.web3.eth.getTransactionCount(this.walletAddress),
+    const tx = new Transaction(
+      this.web3,
+      this.contractAddress,
+      amountWithL2Fee.toNumber(),
+      bridgeFunctionCall,
+      this.account,
+      {
         gas: estimatedGas,
-        maxPriorityFeePerGas,
-        maxFeePerGas: ethers.BigNumber.from(baseFee).add(maxPriorityFeePerGas).toString(),
-        value: amountWithL2Fee.toString(),
-        data: bridgeFunctionCall.encodeABI(),
-      };
-
-      const signedTx = await this.web3.eth.accounts.signTransaction(tx, this.privateKey);
-      if (!signedTx || !signedTx.rawTransaction) {
-        throw new Error('Transaction is not generated');
       }
+    );
 
-      const transactionData = await this.web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+    const transactionHash = await tx.sendTransaction();
+    log(
+      this.protocolName,
+      `${this.walletAddress}: Sent ${amountToBridgeEth} ETH to ZkSync. TX: ${ETH.explorer}/${transactionHash}`
+    );
+  }
 
-      return transactionData;
-    } catch (error: any) {
-      if (error?.message.includes('insufficient funds')) {
-        log(this.protocolName, `${this.walletAddress}: Unsufficient balance.`);
-      } else {
-        log(this.protocolName, `${this.walletAddress}: Error ->`);
-        console.dir(error);
-      }
-    }
+  private async getBalanceInMainnet() {
+    const tokenModule = await TokenModule.create(ETH.rpc);
+    const balanceInMainnet = await tokenModule.getBalanceByContractAddress(
+      ethers.constants.AddressZero,
+      this.walletAddress
+    );
+
+    const balanceReadable = tokenModule.getReadableAmountWithDecimals(balanceInMainnet, 18);
+
+    return balanceReadable;
   }
 }

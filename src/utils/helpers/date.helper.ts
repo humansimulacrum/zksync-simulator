@@ -1,4 +1,4 @@
-export function getDaysAgo(numberOfDays) {
+export function getDaysAgo(numberOfDays: number) {
   const date = new Date();
   date.setDate(date.getDate() - numberOfDays);
 

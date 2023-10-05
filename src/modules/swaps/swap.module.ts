@@ -2,146 +2,123 @@ import Web3 from 'web3';
 import { Account } from 'web3-core';
 
 import { Chain, ERA } from '../../utils/const/chains.const';
-import {
-  approveToken,
-  getAmountWithPrecision,
-  getBalanceAndDecimalsWithTokenContract,
-  getMinOutAmount,
-  randomFloatInRange,
-} from '../../utils/helpers';
-import { getTokenContractsFromCode } from '../../utils/helpers/token-contract.helper';
 import { extractNumbersFromString } from '../../utils/helpers/string.helper';
 import { log } from '../../utils/logger/logger';
+import { Transaction } from '../checkers/transaction.module';
+import { FunctionCall } from '../../utils/types/function-call.type';
+import { fromWei } from '../../utils/helpers/wei.helper';
+import { TokenSymbol } from '../../utils/types/token-symbol.type';
+import { ExecutableModule } from '../executor.module';
+import { GenerateFunctionCallInput, SwapInput } from '../../utils/interfaces/swap-input.interface';
+import { TokenModule } from '../checkers/token.module';
+import { Token } from '../../entity/token.entity';
+import { slippage } from '../../utils/const/config.const';
+import { SwapCalculator } from '../../utils/helpers/pre-swap.helper';
 
-export class Swap {
+export abstract class Swap implements ExecutableModule {
   protocolName: string;
   protocolRouterContract: string;
 
-  supportedCoins: string[];
+  supportedCoins: TokenSymbol[];
   chain: Chain;
   web3: Web3;
 
-  privateKey: string;
   account: Account;
   walletAddress: string;
 
-  constructor(privateKey: string, protocolName: string, protocolRouterContract: string, supportedCoins: string[]) {
+  constructor(privateKey: string, protocolName: string, protocolRouterContract: string, supportedCoins: TokenSymbol[]) {
     this.protocolName = protocolName;
     this.protocolRouterContract = protocolRouterContract;
     this.supportedCoins = supportedCoins;
 
-    this.chain = ERA;
-    this.web3 = new Web3(this.chain.rpc);
+    this.web3 = new Web3(ERA.rpc);
 
-    this.privateKey = privateKey;
     this.account = this.web3.eth.accounts.privateKeyToAccount(privateKey);
     this.walletAddress = this.account.address;
   }
 
-  async prepareTokens(fromToken: string, toToken: string, amountFrom, amountTo) {
-    if (!this.supportedCoins.includes(fromToken) || !this.supportedCoins.includes(toToken)) {
-      throw new Error(`Not supported token pair ${fromToken}->${toToken}`);
-    }
+  async execute() {
+    const swapCalculator = await this.createSwapCalculator();
+    const swapInput = await swapCalculator.calculateSwapParameters();
+    await this.swap(swapInput);
+  }
 
-    if (fromToken === toToken) {
-      throw new Error(`Somehow same tokens set to be swapped: ${fromToken}`);
-    }
-
-    const amountToSwap = randomFloatInRange(amountFrom, amountTo, 10);
-
-    const [fromTokenContractAddress, toTokenContractAddress] = getTokenContractsFromCode(
-      [fromToken, toToken],
-      this.chain.name,
-      this.web3
-    );
-
-    let balanceInFromToken;
-
-    if (fromToken === 'ETH') {
-      balanceInFromToken = await this.web3.eth.getBalance(this.walletAddress);
-    } else {
-      const { tokenBalance } = await getBalanceAndDecimalsWithTokenContract(
-        fromTokenContractAddress,
-        this.walletAddress,
-        this.web3
+  async swap(swapInput: SwapInput): Promise<string> {
+    try {
+      const { fromToken, toToken, amountWithPrecision, minOutAmountWithPrecision } = await this.prepareTokens(
+        swapInput
       );
 
-      balanceInFromToken = tokenBalance;
-    }
+      const swapDeadline = await this.getSwapDeadline();
 
-    const amountWithPrecision = String(await getAmountWithPrecision(fromTokenContractAddress, amountToSwap, this.web3));
-
-    if (Number(amountWithPrecision) > Number(balanceInFromToken)) {
-      throw new Error(
-        `Not enough money in the token ${fromToken}. Wanted -> ${amountToSwap} ${fromToken.toUpperCase()}, Balance -> ${Web3.utils.fromWei(
-          balanceInFromToken,
-          'ether'
-        )} ${fromToken.toUpperCase()}`
-      );
-    }
-
-    const minOutAmount = await getMinOutAmount(fromToken, toToken, amountToSwap);
-    const minOutAmountWithPrecision = (
-      await getAmountWithPrecision(toTokenContractAddress, minOutAmount, this.web3)
-    ).toString();
-
-    if (fromToken !== 'ETH') {
-      await approveToken(
+      const functionCall = this.generateFunctionCall({
+        fromToken,
+        toToken,
         amountWithPrecision,
-        this.privateKey,
-        this.chain,
-        fromTokenContractAddress,
-        this.protocolRouterContract,
-        this.walletAddress,
-        this.web3
+        minOutAmountWithPrecision,
+        swapDeadline,
+      });
+
+      return this.sendSwapTransaction(functionCall, fromToken.symbol, amountWithPrecision);
+    } catch (e: any) {
+      this.errorHandler(e, swapInput.fromToken.symbol, swapInput.toToken.symbol);
+      throw e;
+    }
+  }
+
+  abstract createSwapCalculator(): Promise<SwapCalculator>;
+  abstract generateFunctionCall(functionCallInput: GenerateFunctionCallInput): Promise<FunctionCall>;
+
+  async prepareTokens({ fromToken, toToken, amountToSwap }: SwapInput) {
+    const tokenModule = await TokenModule.create();
+
+    this.validateTokens(fromToken, toToken);
+
+    const amountWithPrecision = tokenModule.getAmountWithPrecisionWithDecimals(amountToSwap, fromToken.decimals);
+
+    const minOutAmount = this.getMinOutAmount(fromToken, toToken, amountToSwap);
+    const minOutAmountWithPrecision = tokenModule.getAmountWithPrecisionWithDecimals(minOutAmount, toToken.decimals);
+
+    if (fromToken.symbol !== 'ETH') {
+      await tokenModule.approveToken(
+        amountWithPrecision,
+        this.account,
+        fromToken.contractAddress,
+        this.protocolRouterContract
       );
     }
 
     return {
-      fromTokenContractAddress,
-      toTokenContractAddress,
-      amountToSwap,
+      fromToken,
+      toToken,
       amountWithPrecision,
       minOutAmountWithPrecision,
     };
   }
 
-  async sendTransaction(swapFunctionCall, fromToken, toToken, amountWithPrecision, amountToSwap) {
-    const estimatedGas = await swapFunctionCall.estimateGas({
-      from: this.walletAddress,
-      value: fromToken === 'ETH' ? amountWithPrecision.toString() : 0,
-    });
-
-    const tx = {
-      from: this.walletAddress,
-      to: this.protocolRouterContract,
-      value: fromToken === 'ETH' ? amountWithPrecision.toString() : 0,
-      nonce: await this.web3.eth.getTransactionCount(this.walletAddress),
-      gas: estimatedGas,
-      data: swapFunctionCall.encodeABI(),
-    };
-
-    const signedTx = await this.web3.eth.accounts.signTransaction(tx, this.privateKey);
-    if (!signedTx || !signedTx.rawTransaction) {
-      throw new Error('Transaction is not generated');
-    }
-
-    const sendTransactionResult = await this.web3.eth.sendSignedTransaction(signedTx.rawTransaction);
-
-    log(
-      this.protocolName,
-      `${this.walletAddress}: ${amountToSwap} ${fromToken} => ${toToken} | TX: ${this.chain.explorer}/${sendTransactionResult.transactionHash}`
+  async sendSwapTransaction(swapFunctionCall: FunctionCall, fromTokenSymbol: string, amountWithPrecision: number) {
+    const value = fromTokenSymbol === 'ETH' ? amountWithPrecision : 0;
+    const swapTransaction = new Transaction(
+      this.web3,
+      this.protocolRouterContract,
+      value,
+      swapFunctionCall,
+      this.account
     );
-
-    return sendTransactionResult;
+    return swapTransaction.sendTransaction();
   }
 
-  errorHandler(e, fromToken, toToken) {
+  getSwapDeadline = async () => {
+    const currentTimestamp = (await this.web3.eth.getBlock('latest')).timestamp;
+    return parseInt(String(currentTimestamp)) + 1200;
+  };
+
+  errorHandler(e: Error, fromToken: string, toToken: string) {
     if (e.message.includes('insufficient funds')) {
       const [balance, fee, value] = extractNumbersFromString(e.message);
-      const feeInEther = this.web3.utils.fromWei(fee, 'ether');
-      const balanceInEther = this.web3.utils.fromWei(balance, 'ether');
-      const valueInEther = this.web3.utils.fromWei(value, 'ether');
+      const feeInEther = fromWei(Number(fee));
+      const balanceInEther = fromWei(Number(balance));
+      const valueInEther = fromWei(Number(value));
 
       log(
         this.protocolName,
@@ -150,5 +127,15 @@ export class Swap {
     } else {
       log(this.protocolName, `${this.walletAddress}. ${e}`);
     }
+  }
+
+  private validateTokens(fromToken: Token, toToken: Token) {
+    if (fromToken.symbol === toToken.symbol) {
+      throw new Error(`Somehow same tokens are set to be swapped: ${fromToken.symbol}`);
+    }
+  }
+
+  private getMinOutAmount(fromToken: Token, toToken: Token, fromTokenAmount: number) {
+    return ((fromTokenAmount * fromToken.priceIsUsd) / toToken.priceIsUsd) * slippage;
   }
 }

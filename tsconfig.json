@@ -6,7 +6,8 @@
     "noImplicitAny": true,
     "experimentalDecorators": true,
     "strictPropertyInitialization": false,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+    "strictNullChecks": true
   },
   "include": ["src/**/*", "src/utils/helpers/db.helper.ts"],
   "exclude": ["node_modules"]

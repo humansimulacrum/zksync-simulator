@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { moduleName, logFilePath } from '../const/config.const';
 
-export const log = (protocolName, message) => {
+export const log = (protocolName: string, message: string) => {
   const logMessage = `${moduleName} - ${protocolName}. ${message}`;
 
   // Print the log message to the console

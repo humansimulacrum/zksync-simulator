@@ -1,6 +1,6 @@
 import Web3 from 'web3';
 
-export const zkSyncEraTokenCodeToContractMapper = {
+export const TOKENS_SUPPORTED = {
   ETH: Web3.utils.toChecksumAddress('0x000000000000000000000000000000000000800A'),
   WETH: Web3.utils.toChecksumAddress('0x5aea5775959fbc2557cc8789bc1bf90a239d9a91'),
   USDC: Web3.utils.toChecksumAddress('0x3355df6D4c9C3035724Fd0e3914dE96A5a83aaf4'),

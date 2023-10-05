@@ -22,3 +22,11 @@ export const daysBetweenTransactionsOnAccount = 30; // one transaction each week
 export const accountsInBatch = 3;
 
 export const tierAssignmentActivityPriorities: ActivityType[] = ['Official Bridge', 'ZkDomain', 'Transactions', 'Rank'];
+
+// swap config
+export const partOfEthToSwapMin = 0.4; // 40% of current eth balance
+export const partOfEthToSwapMax = 0.6; // 60% of current eth balance
+
+// bridge config
+export const partOfEthToBridgeMin = 0.4; // 40% of current eth balance
+export const partOfEthToBridgeMax = 0.6; // 60% of current eth balance

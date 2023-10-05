@@ -1,7 +1,7 @@
 import { Account } from '../../entity/account.entity';
 import { Tier } from '../../entity/tier.entity';
 import { tierAssignmentActivityPriorities } from '../const/config.const';
-import { tierDistributionInPercents, tiers } from '../const/tiers.const';
+import { tierDistributionInPercents } from '../const/tiers.const';
 
 export type ActivityType =
   | 'Official Bridge'

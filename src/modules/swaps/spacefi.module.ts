@@ -1,70 +1,56 @@
 import Web3 from 'web3';
-import { getAbiByRelativePath, getSwapDeadline } from '../../utils/helpers';
+import { getAbiByRelativePath } from '../../utils/helpers';
 import { Swap } from './swap.module';
+import { TokenSymbol } from '../../utils/types/token-symbol.type';
+import { GenerateFunctionCallInput } from '../../utils/interfaces/swap-input.interface';
+import { FunctionCall } from '../../utils/types/function-call.type';
+import { SwapCalculator } from '../../utils/helpers/pre-swap.helper';
 
-export const SPACEFI_SUPPORTED_COINS = ['ETH', 'USDC', 'WBTC'];
+export const SPACEFI_SUPPORTED_COINS = ['ETH', 'USDC', 'WBTC'] as TokenSymbol[];
 export const SPACEFI_ROUTER_CONTRACT_ADDR = Web3.utils.toChecksumAddress('0xbE7D1FD1f6748bbDefC4fbaCafBb11C6Fc506d1d');
 
 export class SpaceFiSwap extends Swap {
-  constructor(privateKey) {
+  constructor(privateKey: string) {
     super(privateKey, 'SpaceFi', SPACEFI_ROUTER_CONTRACT_ADDR, SPACEFI_SUPPORTED_COINS);
   }
 
-  async swap(fromToken, toToken, amountFrom, amountTo) {
-    try {
-      const {
-        fromTokenContractAddress,
-        toTokenContractAddress,
-        amountToSwap,
+  async generateFunctionCall(functionCallInput: GenerateFunctionCallInput): Promise<FunctionCall> {
+    const { fromToken, toToken, amountWithPrecision, minOutAmountWithPrecision, swapDeadline } = functionCallInput;
+
+    const path = [fromToken.contractAddress, toToken.contractAddress];
+
+    const spaceFiAbi = getAbiByRelativePath('../abi/spaceFiRouter.json');
+    const spaceFiRouter = new this.web3.eth.Contract(spaceFiAbi, this.protocolRouterContract);
+
+    if (fromToken.symbol === 'ETH') {
+      return spaceFiRouter.methods.swapExactETHForTokensSupportingFeeOnTransferTokens(
+        minOutAmountWithPrecision,
+        path,
+        this.walletAddress,
+        swapDeadline
+      );
+    }
+
+    if (toToken.symbol === 'ETH') {
+      return spaceFiRouter.methods.swapExactTokensForETHSupportingFeeOnTransferTokens(
         amountWithPrecision,
         minOutAmountWithPrecision,
-      } = await this.prepareTokens(fromToken, toToken, amountFrom, amountTo);
-
-      const swapDeadline = await getSwapDeadline(this.web3);
-
-      const path = [fromTokenContractAddress, toTokenContractAddress];
-
-      const spaceFiAbi = getAbiByRelativePath('../abi/spaceFiRouter.json');
-      const spaceFiRouter = new this.web3.eth.Contract(spaceFiAbi, this.protocolRouterContract);
-
-      let swapFunctionCall;
-
-      if (fromToken === 'ETH') {
-        swapFunctionCall = spaceFiRouter.methods.swapExactETHForTokensSupportingFeeOnTransferTokens(
-          minOutAmountWithPrecision,
-          path,
-          this.walletAddress,
-          swapDeadline
-        );
-      } else if (toToken === 'ETH') {
-        swapFunctionCall = spaceFiRouter.methods.swapExactTokensForETHSupportingFeeOnTransferTokens(
-          amountWithPrecision,
-          minOutAmountWithPrecision,
-          path,
-          this.walletAddress,
-          swapDeadline
-        );
-      } else {
-        swapFunctionCall = spaceFiRouter.methods.swapExactTokensForTokensSupportingFeeOnTransferTokens(
-          amountWithPrecision,
-          minOutAmountWithPrecision,
-          path,
-          this.walletAddress,
-          swapDeadline
-        );
-      }
-
-      const transactionResult = await this.sendTransaction(
-        swapFunctionCall,
-        fromToken,
-        toToken,
-        amountWithPrecision,
-        amountToSwap
+        path,
+        this.walletAddress,
+        swapDeadline
       );
-
-      return transactionResult;
-    } catch (e: any) {
-      this.errorHandler(e, fromToken, toToken);
     }
+
+    return spaceFiRouter.methods.swapExactTokensForTokensSupportingFeeOnTransferTokens(
+      amountWithPrecision,
+      minOutAmountWithPrecision,
+      path,
+      this.walletAddress,
+      swapDeadline
+    );
+  }
+
+  async createSwapCalculator(): Promise<SwapCalculator> {
+    return SwapCalculator.create(this);
   }
 }

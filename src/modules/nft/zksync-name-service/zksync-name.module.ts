@@ -6,12 +6,14 @@ import { AbiItem } from 'web3-utils';
 import { Chain, ERA } from '../../../utils/const/chains.const';
 import { getAbiByRelativePath, randomIntInRange } from '../../../utils/helpers';
 import { log } from '../../../utils/logger/logger';
-import { extractNumbersFromString } from '../../../utils/helpers/string.helper';
 import { englishWords } from '../../../utils/const/words.const';
+import { toWei } from '../../../utils/helpers/wei.helper';
+import { ExecutableModule } from '../../executor.module';
+import { Transaction } from '../../checkers/transaction.module';
 
 const ZKSYNC_NAME_CONTRACT = Web3.utils.toChecksumAddress('0x935442AF47F3dc1c11F006D551E13769F12eab13');
 
-export class ZkSyncNameService {
+export class ZkSyncNameService implements ExecutableModule {
   protocolName: string;
   chain: Chain;
   web3: Web3;
@@ -24,12 +26,10 @@ export class ZkSyncNameService {
   contractAbi: AbiItem[];
   contract: Contract;
 
-  constructor(privateKey) {
+  constructor(privateKey: string) {
     this.protocolName = 'ZkSyncNameService';
-    this.chain = ERA;
-    this.web3 = new Web3(this.chain.rpc);
+    this.web3 = new Web3(ERA.rpc);
 
-    this.privateKey = privateKey;
     this.account = this.web3.eth.accounts.privateKeyToAccount(privateKey);
     this.walletAddress = this.account.address;
 
@@ -39,11 +39,35 @@ export class ZkSyncNameService {
     this.contract = new this.web3.eth.Contract(this.contractAbi, this.contractAddr);
   }
 
-  async mint() {
-    if (this.isAlreadyMinted()) {
-      return false;
+  async execute() {
+    if (await this.isAlreadyMinted()) {
+      return;
     }
 
+    const name = await this.chooseName();
+
+    await this.mint(name);
+  }
+
+  async mint(name: string) {
+    const mintFunctionCall = this.contract.methods.register(name);
+    const valueToMint = toWei(0.0026);
+
+    const transaction = new Transaction(this.web3, this.contractAddr, valueToMint, mintFunctionCall, this.account);
+    const transactionResult = await transaction.sendTransaction();
+
+    log(
+      this.protocolName,
+      `${this.walletAddress}: Minted ZkSync Domain Name ${name}.zk | TX: ${ERA.explorer}/${transactionResult}`
+    );
+  }
+
+  generateName() {
+    const wordCount = englishWords.length;
+    return englishWords[randomIntInRange(0, wordCount)] + englishWords[randomIntInRange(0, wordCount)];
+  }
+
+  async chooseName() {
     let name;
 
     while (true) {
@@ -54,61 +78,10 @@ export class ZkSyncNameService {
       }
     }
 
-    try {
-      const mintFunctionCall = this.contract.methods.register(name);
-      const valueToMint = this.web3.utils.toWei(String(0.0026), 'ether');
-
-      const estimatedGas = await mintFunctionCall.estimateGas({
-        from: this.walletAddress,
-        value: valueToMint,
-      });
-
-      const tx = {
-        from: this.walletAddress,
-        to: this.contractAddr,
-        value: valueToMint,
-        nonce: await this.web3.eth.getTransactionCount(this.walletAddress),
-        gas: estimatedGas,
-        data: mintFunctionCall.encodeABI(),
-      };
-
-      const signedTx = await this.web3.eth.accounts.signTransaction(tx, this.privateKey);
-
-      if (!signedTx || !signedTx.rawTransaction) {
-        throw new Error('Signed transaction is not generated');
-      }
-
-      const sendTransactionResult = await this.web3.eth.sendSignedTransaction(signedTx.rawTransaction);
-
-      log(
-        this.protocolName,
-        `${this.walletAddress}: Minted ZkSync Domain Name ${name}.zk | TX: ${this.chain.explorer}/${sendTransactionResult.transactionHash}`
-      );
-
-      return sendTransactionResult;
-    } catch (e: any) {
-      if (e.message.includes('insufficient funds')) {
-        const [balance, fee, value] = extractNumbersFromString(e.message);
-        const feeInEther = this.web3.utils.fromWei(fee, 'ether');
-        const balanceInEther = this.web3.utils.fromWei(balance, 'ether');
-        const valueInEther = this.web3.utils.fromWei(value, 'ether');
-
-        log(
-          this.protocolName,
-          `${this.walletAddress} | Insufficient funds for transaction. Fee - ${feeInEther}, Value - ${valueInEther}, Balance - ${balanceInEther}`
-        );
-      } else {
-        console.error(e);
-      }
-    }
+    return name;
   }
 
-  generateName() {
-    const wordCount = englishWords.length;
-    return englishWords[randomIntInRange(0, wordCount)] + englishWords[randomIntInRange(0, wordCount)];
-  }
-
-  checkEligibility(name) {
+  checkEligibility(name: string) {
     return this.contract.methods.tokenAddressandID(name).call();
   }
 

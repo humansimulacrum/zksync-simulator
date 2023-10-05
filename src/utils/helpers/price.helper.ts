@@ -1,8 +1,10 @@
-import fetch from 'make-fetch-happen';
+import { fetchData } from './fetch.helper';
 
 export const getTokenPriceCryptoCompare = async (tokenName: string) => {
-  const price = await fetch(`https://min-api.cryptocompare.com/data/price?fsym=${tokenName.toUpperCase()}&tsyms=USDT`);
+  const price = await fetchData(
+    `https://min-api.cryptocompare.com/data/price?fsym=${tokenName.toUpperCase()}&tsyms=USDT`
+  );
 
-  const priceInUsd = (await price.json())['USDT'];
+  const priceInUsd = price['USDT'];
   return priceInUsd;
 };

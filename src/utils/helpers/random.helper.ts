@@ -1,11 +1,11 @@
-export const randomFloatInRange = (min, max, decimalPlaces) => {
+export const randomFloatInRange = (min: number, max: number, decimalPlaces: number) => {
   const rand = Math.random() * (max - min) + min;
   const power = Math.pow(10, decimalPlaces);
 
   return Math.floor(rand * power) / power;
 };
 
-export const randomIntInRange = (min, max) => {
+export const randomIntInRange = (min: number, max: number) => {
   return Math.floor(Math.random() * (max - min) + min);
 };
 
