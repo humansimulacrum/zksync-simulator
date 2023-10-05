@@ -1,14 +1,12 @@
 import Web3 from 'web3';
 
-import { getAbiByRelativePath } from '../../utils/helpers';
+import { getAbiByRelativePath, log } from '../../utils/helpers';
 import { ethers } from 'ethers';
 import { Swap } from './swap.module';
-import { TokenSymbol } from '../../utils/types/token-symbol.type';
-import { GenerateFunctionCallInput } from '../../utils/interfaces/swap-input.interface';
-import { FunctionCall } from '../../utils/types/function-call.type';
-import { SwapCalculator } from '../../utils/helpers/pre-swap.helper';
-import { Token } from '../../entity/token.entity';
-import { log } from '../../utils/logger/logger';
+import { SwapCalculator } from './swap-calculator.module';
+import { FunctionCall, TokenSymbol } from '../../utils/types';
+import { GenerateFunctionCallInput } from '../../utils/interfaces';
+import { Token } from '../../entity';
 
 // those contracts were taken from https://syncswap.gitbook.io/api-documentation/resources/smart-contract
 export const SYNCSWAP_CLASSIC_POOL_FACTORY_ADDR = Web3.utils.toChecksumAddress(

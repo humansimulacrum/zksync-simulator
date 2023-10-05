@@ -20,7 +20,7 @@ export const fetchData = async (url: string, proxy?: string) => {
   try {
     const response = await fetch(url, { proxy });
     return await handleFetchResponse(response);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching data:', error.message);
     throw error;
   }

@@ -7,8 +7,7 @@ import { Provider } from 'zksync-web3';
 import { ethers } from 'ethers';
 
 import { ERA, ETH } from '../../utils/const/chains.const';
-import { getAbiByRelativePath, randomFloatInRange } from '../../utils/helpers';
-import { log } from '../../utils/logger/logger';
+import { getAbiByRelativePath, log, randomFloatInRange } from '../../utils/helpers';
 import { toWei } from '../../utils/helpers/wei.helper';
 import { Transaction } from '../checkers/transaction.module';
 import { ExecutableModule } from '../executor.module';

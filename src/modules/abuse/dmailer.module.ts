@@ -1,8 +1,7 @@
 import Web3 from 'web3';
 import { Chain, ERA } from '../../utils/const/chains.const';
 import { Account } from 'web3-core';
-import { log } from '../../utils/logger/logger';
-import { getAbiByRelativePath } from '../../utils/helpers';
+import { getAbiByRelativePath, log } from '../../utils/helpers';
 import { Transaction } from '../checkers/transaction.module';
 
 const DMAIL_PROTOCOL_CONTRACT = '0x981F198286E40F9979274E0876636E9144B8FB8E';

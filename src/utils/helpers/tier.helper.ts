@@ -70,7 +70,7 @@ function getTierToTierRankMap(tiers: Tier[]) {
   return result;
 }
 
-function sortByActivityPriority(accountA, accountB) {
+function sortByActivityPriority(accountA: Account, accountB: Account) {
   const activityPriorityA = activityToActivityPriorityMatcher(accountA);
   const activityPriorityB = activityToActivityPriorityMatcher(accountB);
 

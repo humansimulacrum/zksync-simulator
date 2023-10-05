@@ -4,8 +4,7 @@ import Contract from 'web3-eth-contract';
 import { AbiItem } from 'web3-utils';
 
 import { Chain, ERA } from '../../../utils/const/chains.const';
-import { getAbiByRelativePath, randomIntInRange } from '../../../utils/helpers';
-import { log } from '../../../utils/logger/logger';
+import { getAbiByRelativePath, log, randomIntInRange } from '../../../utils/helpers';
 import { englishWords } from '../../../utils/const/words.const';
 import { toWei } from '../../../utils/helpers/wei.helper';
 import { ExecutableModule } from '../../executor.module';

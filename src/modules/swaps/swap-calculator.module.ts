@@ -1,10 +1,10 @@
-import { TokenModule } from '../../modules/checkers/token.module';
-import { Swap } from '../../modules/swaps/swap.module';
-import { minAmountOfTokenToSwapInUsd, partOfEthToSwapMax, partOfEthToSwapMin } from '../const/config.const';
-import { TokenBalance } from '../interfaces/balance.interface';
-import { SwapInput } from '../interfaces/swap-input.interface';
-import { TokenSymbol } from '../types/token-symbol.type';
-import { choose, randomFloatInRange } from './random.helper';
+import { TokenModule } from '../checkers/token.module';
+import { Swap } from './swap.module';
+import { minAmountOfTokenToSwapInUsd, partOfEthToSwapMax, partOfEthToSwapMin } from '../../utils/const/config.const';
+import { TokenBalance } from '../../utils/interfaces/balance.interface';
+import { SwapInput } from '../../utils/interfaces/swap-input.interface';
+import { TokenSymbol } from '../../utils/types/token-symbol.type';
+import { choose, randomFloatInRange } from '../../utils/helpers/random.helper';
 
 export class SwapCalculator {
   swapInstance: Swap;

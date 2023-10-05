@@ -1,10 +1,9 @@
 import Web3 from 'web3';
-import { getAbiByRelativePath } from '../../utils/helpers';
+import { FunctionCall, TokenSymbol } from '../../utils/types';
 import { Swap } from './swap.module';
-import { TokenSymbol } from '../../utils/types/token-symbol.type';
-import { SwapCalculator } from '../../utils/helpers/pre-swap.helper';
-import { GenerateFunctionCallInput } from '../../utils/interfaces/swap-input.interface';
-import { FunctionCall } from '../../utils/types/function-call.type';
+import { GenerateFunctionCallInput } from '../../utils/interfaces';
+import { getAbiByRelativePath } from '../../utils/helpers';
+import { SwapCalculator } from './swap-calculator.module';
 
 export const VELOCORE_SUPPORTED_COINS = ['ETH', 'USDC', 'WBTC'] as TokenSymbol[];
 export const VELOCORE_ROUTER_CONTRACT_ADDR = Web3.utils.toChecksumAddress('0xd999e16e68476bc749a28fc14a0c3b6d7073f50c');

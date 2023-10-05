@@ -1,7 +1,7 @@
 import { ActivityModule } from '../modules/checkers/activity.module';
-import { log } from '../utils/logger/logger';
 import { connectToDatabase } from '../utils/helpers/db.helper';
 import { AccountRepository } from '../repositories/account.repository';
+import { log } from '../utils/helpers';
 
 async function actualizeActivityAll() {
   await connectToDatabase();

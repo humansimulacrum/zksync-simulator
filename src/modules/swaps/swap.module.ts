@@ -1,19 +1,15 @@
 import Web3 from 'web3';
 import { Account } from 'web3-core';
-
-import { Chain, ERA } from '../../utils/const/chains.const';
-import { extractNumbersFromString } from '../../utils/helpers/string.helper';
-import { log } from '../../utils/logger/logger';
-import { Transaction } from '../checkers/transaction.module';
-import { FunctionCall } from '../../utils/types/function-call.type';
-import { fromWei } from '../../utils/helpers/wei.helper';
-import { TokenSymbol } from '../../utils/types/token-symbol.type';
 import { ExecutableModule } from '../executor.module';
-import { GenerateFunctionCallInput, SwapInput } from '../../utils/interfaces/swap-input.interface';
+import { FunctionCall, TokenSymbol } from '../../utils/types';
+import { Chain, ERA } from '../../utils/const/chains.const';
+import { GenerateFunctionCallInput, SwapInput } from '../../utils/interfaces';
+import { SwapCalculator } from './swap-calculator.module';
 import { TokenModule } from '../checkers/token.module';
-import { Token } from '../../entity/token.entity';
+import { Transaction } from '../checkers/transaction.module';
+import { extractNumbersFromString, fromWei, log } from '../../utils/helpers';
+import { Token } from '../../entity';
 import { slippage } from '../../utils/const/config.const';
-import { SwapCalculator } from '../../utils/helpers/pre-swap.helper';
 
 export abstract class Swap implements ExecutableModule {
   protocolName: string;
@@ -51,7 +47,7 @@ export abstract class Swap implements ExecutableModule {
 
       const swapDeadline = await this.getSwapDeadline();
 
-      const functionCall = this.generateFunctionCall({
+      const functionCall = await this.generateFunctionCall({
         fromToken,
         toToken,
         amountWithPrecision,

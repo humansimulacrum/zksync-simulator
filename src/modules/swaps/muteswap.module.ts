@@ -1,7 +1,7 @@
 import Web3 from 'web3';
 import { getAbiByRelativePath } from '../../utils/helpers';
 import { Swap } from './swap.module';
-import { SwapCalculator } from '../../utils/helpers/pre-swap.helper';
+import { SwapCalculator } from './swap-calculator.module';
 import { TokenSymbol } from '../../utils/types/token-symbol.type';
 import { GenerateFunctionCallInput, SwapInput } from '../../utils/interfaces/swap-input.interface';
 import { Token } from '../../entity/token.entity';

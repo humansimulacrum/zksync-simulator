@@ -4,6 +4,7 @@
   "description": "Software for ZkSync possible retrodrop",
   "main": "src/actions/main.ts",
   "scripts": {
+    "build": "tsc",
     "start": "ts-node src/actions/main.ts",
     "import": "ts-node src/actions/import.ts",
     "update": "ts-node src/actions/update.ts",

@@ -1,7 +1,7 @@
 import Web3 from 'web3';
 import { maxGwei, sleepOnHighGas } from '../const/config.const';
-import { log } from '../logger/logger';
 import { sleepLogWrapper } from './sleep.helper';
+import { log } from '.';
 
 export const isGasOkay = async (web3: Web3, walletAddress: string) => {
   const baseFee = (await web3.eth.getBlock('latest')).baseFeePerGas;

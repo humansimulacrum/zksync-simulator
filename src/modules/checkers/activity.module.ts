@@ -1,7 +1,6 @@
 import Web3 from 'web3';
-import { choose, getTokenPriceCryptoCompare, importProxies } from '../../utils/helpers';
+import { choose, getTokenPriceCryptoCompare, importProxies, log } from '../../utils/helpers';
 import { fetchData, postData } from '../../utils/helpers/fetch.helper';
-import { log } from '../../utils/logger/logger';
 import { TransactionDataItem } from '../../utils/interfaces/transaction-item.interface';
 import { Activity } from '../../entity/activities.entity';
 import { ActivityRepository } from '../../repositories/activity.repository';

@@ -1,7 +1,6 @@
 import Web3 from 'web3';
 import { ActivityModule } from '../modules/checkers/activity.module';
-import { connectToDatabase, importETHWallets } from '../utils/helpers';
-import { log } from '../utils/logger/logger';
+import { connectToDatabase, importETHWallets, log } from '../utils/helpers';
 import { AccountRepository, ActivityRepository } from '../repositories';
 
 const PROTOCOL_NAME = 'Account DB Import';
