@@ -1,16 +1,6 @@
 import { Account } from '../../entity/account.entity';
 import { Tier } from '../../entity/tier.entity';
-import { tierAssignmentActivityPriorities } from '../const/config.const';
-import { tierDistributionInPercents } from '../const/tiers.const';
-
-export type ActivityType =
-  | 'Official Bridge'
-  | 'ZkDomain'
-  | 'Transactions'
-  | 'Rank'
-  | 'ENS'
-  | 'Volume'
-  | 'Smart Contract Amount';
+import { tierAssignmentActivityPriorities, tierDistributionInPercents } from '../const/tiers.const';
 
 export function tierAssigner(accounts: Account[], tiers: Tier[]) {
   const accountsWithActivityPopulated = accounts.filter((account) => account.activity);

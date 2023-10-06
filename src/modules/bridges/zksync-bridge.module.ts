@@ -6,19 +6,22 @@ import { AbiItem } from 'web3-utils';
 import { Provider } from 'zksync-web3';
 import { ethers } from 'ethers';
 
-import { ERA, ETH } from '../../utils/const/chains.const';
-import { getAbiByRelativePath, log, randomFloatInRange } from '../../utils/helpers';
+import { Chain, ERA, ETH } from '../../utils/const/chains.const';
+import { getAbiByRelativePath, logWithFormatting, randomFloatInRange } from '../../utils/helpers';
 import { toWei } from '../../utils/helpers/wei.helper';
-import { Transaction } from '../checkers/transaction.module';
-import { ExecutableModule } from '../executor.module';
-import { TokenModule } from '../checkers/token.module';
+import { Transaction } from '../utility/transaction.module';
+import { TokenModule } from '../utility/token.module';
 import { partOfEthToBridgeMax, partOfEthToBridgeMin } from '../../utils/const/config.const';
+import { ExecutableModule, ExecuteOutput, ModuleOutput } from '../../utils/interfaces/execute.interface';
+import { ActionType } from '../../utils/enums/action-type.enum';
 
 export const ZKSYNC_BRIDGE_CONTRACT_ADDR = Web3.utils.toChecksumAddress('0x32400084C286CF3E17e7B677ea9583e60a000324');
 
 export class ZkSyncBridge implements ExecutableModule {
   protocolName: string;
+
   web3: Web3;
+  chain: Chain;
 
   account: Account;
   walletAddress: string;
@@ -30,8 +33,9 @@ export class ZkSyncBridge implements ExecutableModule {
   zkSyncProvider: Provider;
 
   constructor(privateKey: string) {
-    this.protocolName = 'ZkSync Bridge';
-    this.web3 = new Web3(ETH.rpc);
+    this.protocolName = ActionType.OfficialBridge;
+    this.chain = ETH;
+    this.web3 = new Web3(this.chain.rpc);
 
     this.account = this.web3.eth.accounts.privateKeyToAccount(privateKey);
     this.walletAddress = this.account.address;
@@ -44,20 +48,22 @@ export class ZkSyncBridge implements ExecutableModule {
     this.zkSyncProvider = new Provider(ERA.rpc);
   }
 
-  async execute() {
+  async execute(): Promise<ExecuteOutput> {
     const balanceInMainnetReadable = await this.getBalanceInMainnet();
 
     const amountToBridgeMin = partOfEthToBridgeMin * balanceInMainnetReadable;
     const amountToBridgeMax = partOfEthToBridgeMax * balanceInMainnetReadable;
 
-    await this.bridge(amountToBridgeMin, amountToBridgeMax);
+    const { transactionHash, message } = await this.bridge(amountToBridgeMin, amountToBridgeMax);
+
+    return { transactionHash, message, chain: this.chain, protocolName: this.protocolName };
   }
 
-  async bridge(amountToBridgeMin: number, amountToBridgeMax: number) {
+  async bridge(amountToBridgeMin: number, amountToBridgeMax: number): Promise<ModuleOutput> {
     const amountToBridgeEth = randomFloatInRange(amountToBridgeMin, amountToBridgeMax, 10);
     const amountToBridgeWei = toWei(amountToBridgeEth);
 
-    log(this.protocolName, `${this.walletAddress}: Sending ${amountToBridgeEth} ETH to ZkSync`);
+    logWithFormatting(this.protocolName, `${this.walletAddress}: Sending ${amountToBridgeEth} ETH to ZkSync`);
 
     const contractAddressL2 = this.walletAddress;
     const l2Value = amountToBridgeWei.toString();
@@ -100,10 +106,11 @@ export class ZkSyncBridge implements ExecutableModule {
     );
 
     const transactionHash = await tx.sendTransaction();
-    log(
-      this.protocolName,
-      `${this.walletAddress}: Sent ${amountToBridgeEth} ETH to ZkSync. TX: ${ETH.explorer}/${transactionHash}`
-    );
+    const message = `Bridged ${amountToBridgeEth} ETH to ZkSync via Official Bridge.`;
+    return {
+      transactionHash,
+      message,
+    };
   }
 
   private async getBalanceInMainnet() {

@@ -1,4 +1,4 @@
-import { TokenModule } from '../checkers/token.module';
+import { TokenModule } from '../utility/token.module';
 import { Swap } from './swap.module';
 import { minAmountOfTokenToSwapInUsd, partOfEthToSwapMax, partOfEthToSwapMin } from '../../utils/const/config.const';
 import { TokenBalance } from '../../utils/interfaces/balance.interface';

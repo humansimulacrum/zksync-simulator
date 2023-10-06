@@ -1,5 +1,5 @@
 import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { Activity } from './activities.entity';
+import { Activity } from './activity.entity';
 import { Tier } from './tier.entity';
 
 @Entity()

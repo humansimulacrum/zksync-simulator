@@ -4,13 +4,11 @@ import { Swap } from './swap.module';
 import { GenerateFunctionCallInput } from '../../utils/interfaces';
 import { getAbiByRelativePath } from '../../utils/helpers';
 import { SwapCalculator } from './swap-calculator.module';
-
-export const VELOCORE_SUPPORTED_COINS = ['ETH', 'USDC', 'WBTC'] as TokenSymbol[];
-export const VELOCORE_ROUTER_CONTRACT_ADDR = Web3.utils.toChecksumAddress('0xd999e16e68476bc749a28fc14a0c3b6d7073f50c');
+import { ActionType } from '../../utils/enums/action-type.enum';
 
 export class Velocore extends Swap {
   constructor(privateKey: string) {
-    super(privateKey, 'Velocore', VELOCORE_ROUTER_CONTRACT_ADDR, VELOCORE_SUPPORTED_COINS);
+    super(privateKey, ActionType.Velocore);
   }
 
   async generateFunctionCall(functionCallInput: GenerateFunctionCallInput): Promise<FunctionCall> {

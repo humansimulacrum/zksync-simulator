@@ -1,7 +1,7 @@
-import { ActivityModule } from '../modules/checkers/activity.module';
+import { ActivityModule } from '../modules/utility/activity.module';
 import { connectToDatabase } from '../utils/helpers/db.helper';
 import { AccountRepository } from '../repositories/account.repository';
-import { log } from '../utils/helpers';
+import { logWithFormatting } from '../utils/helpers';
 
 async function actualizeActivityAll() {
   await connectToDatabase();
@@ -11,7 +11,7 @@ async function actualizeActivityAll() {
 
   const promiseArray = accounts.map(async (account) => {
     await activityModule.actualizeActivity(account);
-    log('Account Activity Actualizer', `${account.walletAddress!}: Activity Actualized!`);
+    logWithFormatting('Account Activity Actualizer', `${account.walletAddress!}: Activity Actualized!`);
   });
 
   await Promise.all(promiseArray);

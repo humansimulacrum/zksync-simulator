@@ -3,7 +3,6 @@ export * from './date.helper';
 export * from './db.helper';
 export * from './fetch.helper';
 export * from './file-import.helper';
-export * from './gas.helper';
 export * from './log.helper';
 export * from './picker.helper';
 export * from './price.helper';

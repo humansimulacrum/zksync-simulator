@@ -18,8 +18,8 @@ export class Tier {
   @Column()
   zkSyncDomainNeeded: boolean;
 
-  @Column()
-  dmailerAllowed: boolean;
+  // @Column()
+  // dmailerAllowed: boolean;
 
   // in future
   // volume: number;

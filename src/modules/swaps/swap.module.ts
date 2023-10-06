@@ -1,17 +1,17 @@
 import Web3 from 'web3';
 import { Account } from 'web3-core';
-import { ExecutableModule } from '../executor.module';
 import { FunctionCall, TokenSymbol } from '../../utils/types';
 import { Chain, ERA } from '../../utils/const/chains.const';
-import { GenerateFunctionCallInput, SwapInput } from '../../utils/interfaces';
 import { SwapCalculator } from './swap-calculator.module';
-import { TokenModule } from '../checkers/token.module';
-import { Transaction } from '../checkers/transaction.module';
-import { extractNumbersFromString, fromWei, log } from '../../utils/helpers';
+import { TokenModule } from '../utility/token.module';
+import { Transaction } from '../utility/transaction.module';
 import { Token } from '../../entity';
+import { SWAP_CONTRACT_ADDRESSES, SWAP_SUPPORTED_COINS } from '../../utils/const/swap.const';
+import { ExecutableModule, ExecuteOutput, ModuleOutput } from '../../utils/interfaces/execute.interface';
+import { GenerateFunctionCallInput, SwapInput } from '../../utils/interfaces';
 import { slippage } from '../../utils/const/config.const';
 
-export abstract class Swap implements ExecutableModule {
+export abstract class Swap extends ExecutableModule {
   protocolName: string;
   protocolRouterContract: string;
 
@@ -22,44 +22,52 @@ export abstract class Swap implements ExecutableModule {
   account: Account;
   walletAddress: string;
 
-  constructor(privateKey: string, protocolName: string, protocolRouterContract: string, supportedCoins: TokenSymbol[]) {
-    this.protocolName = protocolName;
-    this.protocolRouterContract = protocolRouterContract;
-    this.supportedCoins = supportedCoins;
+  constructor(privateKey: string, protocolName: string) {
+    super();
 
-    this.web3 = new Web3(ERA.rpc);
+    this.protocolName = protocolName;
+    this.protocolRouterContract = SWAP_CONTRACT_ADDRESSES[protocolName];
+    this.supportedCoins = SWAP_SUPPORTED_COINS[protocolName];
+
+    this.chain = ERA;
+    this.web3 = new Web3(this.chain.rpc);
 
     this.account = this.web3.eth.accounts.privateKeyToAccount(privateKey);
     this.walletAddress = this.account.address;
   }
 
-  async execute() {
+  async execute(): Promise<ExecuteOutput> {
     const swapCalculator = await this.createSwapCalculator();
     const swapInput = await swapCalculator.calculateSwapParameters();
-    await this.swap(swapInput);
+
+    const { transactionHash, message } = await this.swap(swapInput);
+
+    return {
+      transactionHash,
+      message,
+      chain: this.chain,
+      protocolName: this.protocolName,
+    };
   }
 
-  async swap(swapInput: SwapInput): Promise<string> {
-    try {
-      const { fromToken, toToken, amountWithPrecision, minOutAmountWithPrecision } = await this.prepareTokens(
-        swapInput
-      );
+  async swap(swapInput: SwapInput): Promise<ModuleOutput> {
+    const { fromToken, toToken, amountToSwap, amountWithPrecision, minOutAmountWithPrecision } =
+      await this.prepareTokens(swapInput);
 
-      const swapDeadline = await this.getSwapDeadline();
+    const swapDeadline = await this.getSwapDeadline();
 
-      const functionCall = await this.generateFunctionCall({
-        fromToken,
-        toToken,
-        amountWithPrecision,
-        minOutAmountWithPrecision,
-        swapDeadline,
-      });
+    const functionCall = await this.generateFunctionCall({
+      fromToken,
+      toToken,
+      amountWithPrecision,
+      minOutAmountWithPrecision,
+      swapDeadline,
+    });
 
-      return this.sendSwapTransaction(functionCall, fromToken.symbol, amountWithPrecision);
-    } catch (e: any) {
-      this.errorHandler(e, swapInput.fromToken.symbol, swapInput.toToken.symbol);
-      throw e;
-    }
+    const transactionHash = await this.sendSwapTransaction(functionCall, fromToken.symbol, amountWithPrecision);
+    const message = `Swapped ${amountToSwap} ${fromToken} => ${toToken}`;
+
+    return { transactionHash, message };
   }
 
   abstract createSwapCalculator(): Promise<SwapCalculator>;
@@ -87,6 +95,7 @@ export abstract class Swap implements ExecutableModule {
     return {
       fromToken,
       toToken,
+      amountToSwap,
       amountWithPrecision,
       minOutAmountWithPrecision,
     };
@@ -108,22 +117,6 @@ export abstract class Swap implements ExecutableModule {
     const currentTimestamp = (await this.web3.eth.getBlock('latest')).timestamp;
     return parseInt(String(currentTimestamp)) + 1200;
   };
-
-  errorHandler(e: Error, fromToken: string, toToken: string) {
-    if (e.message.includes('insufficient funds')) {
-      const [balance, fee, value] = extractNumbersFromString(e.message);
-      const feeInEther = fromWei(Number(fee));
-      const balanceInEther = fromWei(Number(balance));
-      const valueInEther = fromWei(Number(value));
-
-      log(
-        this.protocolName,
-        `${this.walletAddress}: ${fromToken} => ${toToken} | Insufficient funds for transaction. Fee - ${feeInEther}, Value - ${valueInEther}, Balance - ${balanceInEther}`
-      );
-    } else {
-      log(this.protocolName, `${this.walletAddress}. ${e}`);
-    }
-  }
 
   private validateTokens(fromToken: Token, toToken: Token) {
     if (fromToken.symbol === toToken.symbol) {

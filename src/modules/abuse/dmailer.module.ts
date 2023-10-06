@@ -1,8 +1,10 @@
 import Web3 from 'web3';
 import { Chain, ERA } from '../../utils/const/chains.const';
 import { Account } from 'web3-core';
-import { getAbiByRelativePath, log } from '../../utils/helpers';
-import { Transaction } from '../checkers/transaction.module';
+import { getAbiByRelativePath, logWithFormatting } from '../../utils/helpers';
+import { Transaction } from '../utility/transaction.module';
+import { ExecuteOutput, ModuleOutput } from '../../utils/interfaces/execute.interface';
+import { ActionType } from '../../utils/enums/action-type.enum';
 
 const DMAIL_PROTOCOL_CONTRACT = '0x981F198286E40F9979274E0876636E9144B8FB8E';
 
@@ -17,7 +19,7 @@ export class Dmail {
   walletAddress: string;
 
   constructor(privateKey: string) {
-    this.protocolName = 'Dmail';
+    this.protocolName = ActionType.Dmail;
     this.web3 = new Web3(ERA.rpc);
 
     this.privateKey = privateKey;
@@ -25,7 +27,12 @@ export class Dmail {
     this.walletAddress = this.account.address;
   }
 
-  async execute() {
+  async execute(): Promise<ExecuteOutput> {
+    const { transactionHash, message } = await this.sendMail();
+    return { transactionHash, message, chain: this.chain, protocolName: this.protocolName };
+  }
+
+  async sendMail(): Promise<ModuleOutput> {
     const dmailAbi = getAbiByRelativePath('../abi/dmail.json');
     const dmailContractInstance = new this.web3.eth.Contract(dmailAbi, this.protocolContractAddr);
 
@@ -37,9 +44,11 @@ export class Dmail {
     const tx = new Transaction(this.web3, this.protocolContractAddr, 0, dmailFunctionCall, this.account);
     const transactionHash = await tx.sendTransaction();
 
-    log(
-      this.protocolName,
-      `${this.walletAddress}: Sent message to ${destinationEmailAddr}. TX: ${ERA.explorer}/${transactionHash}`
-    );
+    const message = `Sent message to ${destinationEmailAddr}.`;
+
+    return {
+      transactionHash,
+      message,
+    };
   }
 }

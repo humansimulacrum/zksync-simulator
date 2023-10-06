@@ -1,18 +1,14 @@
-import Web3 from 'web3';
 import { getAbiByRelativePath } from '../../utils/helpers';
 import { Swap } from './swap.module';
 import { SwapCalculator } from './swap-calculator.module';
-import { TokenSymbol } from '../../utils/types/token-symbol.type';
 import { GenerateFunctionCallInput, SwapInput } from '../../utils/interfaces/swap-input.interface';
 import { Token } from '../../entity/token.entity';
 import { FunctionCall } from '../../utils/types/function-call.type';
-
-export const MUTE_ROUTER_CONTRACT_ADDR = Web3.utils.toChecksumAddress('0x8B791913eB07C32779a16750e3868aA8495F5964');
-export const MUTE_SUPPORTED_COINS = ['ETH', 'USDC', 'WBTC'] as TokenSymbol[];
+import { ActionType } from '../../utils/enums/action-type.enum';
 
 export class MuteSwap extends Swap {
   constructor(privateKey: string) {
-    super(privateKey, 'Mute', MUTE_ROUTER_CONTRACT_ADDR, MUTE_SUPPORTED_COINS);
+    super(privateKey, ActionType.Mute);
   }
 
   async generateFunctionCall(functionCallInput: GenerateFunctionCallInput): Promise<FunctionCall> {

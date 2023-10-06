@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import { Account } from './entity/account.entity';
 import { Tier } from './entity/tier.entity';
-import { Activity } from './entity/activities.entity';
+import { Activity } from './entity/activity.entity';
 
 export const AppDataSource = new DataSource({
   type: 'sqlite',

@@ -1,23 +1,21 @@
 import Web3 from 'web3';
 
-import { getAbiByRelativePath, log } from '../../utils/helpers';
+import { getAbiByRelativePath, logWithFormatting } from '../../utils/helpers';
 import { ethers } from 'ethers';
 import { Swap } from './swap.module';
 import { SwapCalculator } from './swap-calculator.module';
 import { FunctionCall, TokenSymbol } from '../../utils/types';
 import { GenerateFunctionCallInput } from '../../utils/interfaces';
 import { Token } from '../../entity';
+import { ActionType } from '../../utils/enums/action-type.enum';
 
 // those contracts were taken from https://syncswap.gitbook.io/api-documentation/resources/smart-contract
 export const SYNCSWAP_CLASSIC_POOL_FACTORY_ADDR = Web3.utils.toChecksumAddress(
   '0xf2dad89f2788a8cd54625c60b55cd3d2d0aca7cb'
 );
-export const SYNCSWAP_ROUTER_ADDR = Web3.utils.toChecksumAddress('0x2da10A1e27bF85cEdD8FFb1AbBe97e53391C0295');
-export const SYNCSWAP_SUPPORTED_COINS = ['ETH', 'USDC', 'WBTC'] as TokenSymbol[];
-
 export class SyncSwap extends Swap {
   constructor(privateKey: string) {
-    super(privateKey, 'SyncSwap', SYNCSWAP_ROUTER_ADDR, SYNCSWAP_SUPPORTED_COINS);
+    super(privateKey, ActionType.SyncSwap);
   }
 
   async generateFunctionCall(functionCallInput: GenerateFunctionCallInput): Promise<FunctionCall> {
@@ -68,7 +66,7 @@ export class SyncSwap extends Swap {
       .call();
 
     if (poolAddress === ethers.constants.AddressZero) {
-      log(
+      logWithFormatting(
         this.protocolName,
         `${this.walletAddress}: There aren't any pools available for those tokens ${fromToken.symbol} => ${toToken.symbol}`
       );

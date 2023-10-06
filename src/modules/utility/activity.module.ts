@@ -1,8 +1,8 @@
 import Web3 from 'web3';
-import { choose, getTokenPriceCryptoCompare, importProxies, log } from '../../utils/helpers';
+import { choose, getTokenPriceCryptoCompare, importProxies, logWithFormatting } from '../../utils/helpers';
 import { fetchData, postData } from '../../utils/helpers/fetch.helper';
 import { TransactionDataItem } from '../../utils/interfaces/transaction-item.interface';
-import { Activity } from '../../entity/activities.entity';
+import { Activity } from '../../entity/activity.entity';
 import { ActivityRepository } from '../../repositories/activity.repository';
 import { Account } from '../../entity/account.entity';
 import { ERA } from '../../utils/const/chains.const';
@@ -113,7 +113,7 @@ export class ActivityModule {
 
       return ranking[0].rank;
     } catch (e: any) {
-      log(this.moduleName, `${walletAddr}. Ranking fetch failed. ${e.message}`);
+      logWithFormatting(this.moduleName, `${walletAddr}. Ranking fetch failed. ${e.message}`);
     }
 
     return 0;
@@ -127,7 +127,7 @@ export class ActivityModule {
       const data = await fetchData(urlString, proxyStr);
       return data.items;
     } catch (e: any) {
-      log(this.moduleName, `${walletAddr}. Transaction fetch failed. ${e.message}`);
+      logWithFormatting(this.moduleName, `${walletAddr}. Transaction fetch failed. ${e.message}`);
     }
 
     return [];

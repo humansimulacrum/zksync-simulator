@@ -37,7 +37,7 @@ export const ERA = new Chain({
 export const ETH = new Chain({
   name: 'ETH',
   chainId: 1,
-  rpc: 'https://rpc.ankr.com/eth/c838e2546976e80e04458e57c44b5bae4c29342eec0e2faf5c3febccc156ba83',
+  rpc: 'https://rpc.ankr.com/eth',
   explorer: 'https://etherscan.io/tx',
   token: 'ETH',
 });

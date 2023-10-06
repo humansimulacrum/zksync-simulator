@@ -5,13 +5,11 @@ import { TokenSymbol } from '../../utils/types/token-symbol.type';
 import { GenerateFunctionCallInput } from '../../utils/interfaces/swap-input.interface';
 import { FunctionCall } from '../../utils/types/function-call.type';
 import { SwapCalculator } from './swap-calculator.module';
-
-export const SPACEFI_SUPPORTED_COINS = ['ETH', 'USDC', 'WBTC'] as TokenSymbol[];
-export const SPACEFI_ROUTER_CONTRACT_ADDR = Web3.utils.toChecksumAddress('0xbE7D1FD1f6748bbDefC4fbaCafBb11C6Fc506d1d');
+import { ActionType } from '../../utils/enums/action-type.enum';
 
 export class SpaceFiSwap extends Swap {
   constructor(privateKey: string) {
-    super(privateKey, 'SpaceFi', SPACEFI_ROUTER_CONTRACT_ADDR, SPACEFI_SUPPORTED_COINS);
+    super(privateKey, ActionType.SpaceFi);
   }
 
   async generateFunctionCall(functionCallInput: GenerateFunctionCallInput): Promise<FunctionCall> {

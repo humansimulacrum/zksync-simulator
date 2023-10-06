@@ -1,34 +1,11 @@
-import cliProgress from 'cli-progress';
-import colors from 'ansi-colors';
-import { moduleName } from '../const/config.const';
+import { sleepBetweenWalletsFrom, sleepBetweenWalletsTo } from '../const/config.const';
+import { randomIntInRange, sleepLogWrapper } from '.';
+import { ethers } from 'ethers';
 
-export const sleepLogWrapper = async (millis: number, walletAddr: string, message: string) => {
-  console.log('\r');
-  const bar = new cliProgress.SingleBar(
-    {
-      format:
-        moduleName +
-        '. ' +
-        walletAddr +
-        ': ' +
-        colors.cyan('{bar}') +
-        '  {percentage}% | Sleeping for {value}/{total} seconds' +
-        ` ${message} `,
-      hideCursor: true,
-    },
-    cliProgress.Presets.shades_grey
-  );
-  bar.start(millis / 1000, 0);
-
-  const iters = millis / 1000;
-
-  for (let i = 0; i < iters; i++) {
-    bar.increment(1);
-    await sleep(1000);
-  }
-
-  bar.stop();
-};
+export async function sleepBetweenWallets() {
+  const sleepDuration = randomIntInRange(sleepBetweenWalletsFrom, sleepBetweenWalletsTo);
+  await sleepLogWrapper(sleepDuration * 1000, ethers.constants.AddressZero, 'between wallets.');
+}
 
 export async function sleep(millis: number) {
   return new Promise((resolve) => setTimeout(resolve, millis));

@@ -1,6 +1,6 @@
 import Web3 from 'web3';
-import { ActivityModule } from '../modules/checkers/activity.module';
-import { connectToDatabase, importETHWallets, log } from '../utils/helpers';
+import { ActivityModule } from '../modules/utility/activity.module';
+import { connectToDatabase, importETHWallets, logWithFormatting } from '../utils/helpers';
 import { AccountRepository, ActivityRepository } from '../repositories';
 
 const PROTOCOL_NAME = 'Account DB Import';
@@ -11,7 +11,7 @@ async function importAccounts() {
   const ethWallets = await importETHWallets();
 
   if (!ethWallets) {
-    log(PROTOCOL_NAME, `No wallets found on the import.`);
+    logWithFormatting(PROTOCOL_NAME, `No wallets found on the import.`);
     process.exit(0);
   }
 
@@ -28,7 +28,7 @@ async function importAccountAndActivities(privateKey: string, activityModule: Ac
   const existingAccount = await AccountRepository.findOneBy({ walletAddress });
 
   if (existingAccount) {
-    log(PROTOCOL_NAME, `${walletAddress}: Already in the DB.`);
+    logWithFormatting(PROTOCOL_NAME, `${walletAddress}: Already in the DB.`);
     return;
   }
 
@@ -36,7 +36,7 @@ async function importAccountAndActivities(privateKey: string, activityModule: Ac
   const activity = await activityModule.actualizeActivity(account);
 
   await setAccountActivityRelationship(account.id, activity.id);
-  log(PROTOCOL_NAME, `${walletAddress}: Saved to DB.`);
+  logWithFormatting(PROTOCOL_NAME, `${walletAddress}: Saved to DB.`);
 }
 
 async function setAccountActivityRelationship(accountId: string, activityId: string) {

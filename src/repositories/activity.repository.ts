@@ -1,5 +1,5 @@
 import { AppDataSource } from '../data-source';
-import { Activity } from '../entity/activities.entity';
+import { Activity } from '../entity/activity.entity';
 import { DeepPartial } from 'typeorm';
 
 export const ActivityRepository = AppDataSource.getRepository(Activity).extend({

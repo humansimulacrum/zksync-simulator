@@ -1,6 +1,19 @@
-import { Tier } from '../../entity/tier.entity';
+import { ActivityType } from '../enums/activity-type.enum';
+import { ExecutableActivity } from '../types/executable-activities.type';
+import { TierPayload } from '../types/tier-payload.type';
 
-type TierPayload = Omit<Tier, 'accounts' | 'id'>;
+export const tierAssignmentActivityPriorities: ActivityType[] = [
+  ActivityType.OfficialBridge,
+  ActivityType.ZkDomain,
+  ActivityType.Transactions,
+  ActivityType.Rank,
+];
+
+export const executableActivitiesSortedByPriority: ExecutableActivity[] = [
+  ActivityType.OfficialBridge,
+  ActivityType.ZkDomain,
+  ActivityType.Transactions,
+];
 
 export const tiers: TierPayload[] = [
   {
@@ -8,35 +21,35 @@ export const tiers: TierPayload[] = [
     transactionCountNeeded: 50,
     officialBridgeNeeded: true,
     zkSyncDomainNeeded: true,
-    dmailerAllowed: false,
+    // dmailerAllowed: false,
   },
   {
     tierRank: 2,
     transactionCountNeeded: 40,
     officialBridgeNeeded: true,
     zkSyncDomainNeeded: false,
-    dmailerAllowed: false,
+    // dmailerAllowed: false,
   },
   {
     tierRank: 3,
     transactionCountNeeded: 30,
     officialBridgeNeeded: false,
     zkSyncDomainNeeded: false,
-    dmailerAllowed: false,
+    // dmailerAllowed: false,
   },
   {
     tierRank: 4,
     transactionCountNeeded: 20,
     officialBridgeNeeded: false,
     zkSyncDomainNeeded: false,
-    dmailerAllowed: true,
+    // dmailerAllowed: true,
   },
   {
     tierRank: 5,
     transactionCountNeeded: 10,
     officialBridgeNeeded: false,
     zkSyncDomainNeeded: false,
-    dmailerAllowed: true,
+    // dmailerAllowed: true,
   },
 ];
 

@@ -3,19 +3,20 @@ import { Account } from 'web3-core';
 import Contract from 'web3-eth-contract';
 import { AbiItem } from 'web3-utils';
 
-import { Chain, ERA } from '../../../utils/const/chains.const';
-import { getAbiByRelativePath, log, randomIntInRange } from '../../../utils/helpers';
-import { englishWords } from '../../../utils/const/words.const';
-import { toWei } from '../../../utils/helpers/wei.helper';
-import { ExecutableModule } from '../../executor.module';
-import { Transaction } from '../../checkers/transaction.module';
+import { Chain, ERA } from '../../utils/const/chains.const';
+import { getAbiByRelativePath, randomIntInRange } from '../../utils/helpers';
+import { englishWords } from '../../utils/const/words.const';
+import { toWei } from '../../utils/helpers/wei.helper';
+import { Transaction } from '../utility/transaction.module';
+import { ExecutableModule, ExecuteOutput, ModuleOutput } from '../../utils/interfaces/execute.interface';
+import { ActionType } from '../../utils/enums/action-type.enum';
 
 const ZKSYNC_NAME_CONTRACT = Web3.utils.toChecksumAddress('0x935442AF47F3dc1c11F006D551E13769F12eab13');
 
 export class ZkSyncNameService implements ExecutableModule {
   protocolName: string;
-  chain: Chain;
   web3: Web3;
+  chain: Chain;
 
   privateKey: string;
   account: Account;
@@ -26,8 +27,10 @@ export class ZkSyncNameService implements ExecutableModule {
   contract: Contract;
 
   constructor(privateKey: string) {
-    this.protocolName = 'ZkSyncNameService';
-    this.web3 = new Web3(ERA.rpc);
+    this.protocolName = ActionType.ZkNS;
+
+    this.chain = ERA;
+    this.web3 = new Web3(this.chain.rpc);
 
     this.account = this.web3.eth.accounts.privateKeyToAccount(privateKey);
     this.walletAddress = this.account.address;
@@ -38,27 +41,31 @@ export class ZkSyncNameService implements ExecutableModule {
     this.contract = new this.web3.eth.Contract(this.contractAbi, this.contractAddr);
   }
 
-  async execute() {
+  async execute(): Promise<ExecuteOutput> {
     if (await this.isAlreadyMinted()) {
-      return;
+      throw new Error('Already minted');
     }
 
-    const name = await this.chooseName();
+    const { transactionHash, message } = await this.mint();
 
-    await this.mint(name);
+    return {
+      transactionHash,
+      chain: ERA,
+      message,
+      protocolName: this.protocolName,
+    };
   }
 
-  async mint(name: string) {
+  async mint(): Promise<ModuleOutput> {
+    const name = await this.chooseName();
+
     const mintFunctionCall = this.contract.methods.register(name);
     const valueToMint = toWei(0.0026);
 
     const transaction = new Transaction(this.web3, this.contractAddr, valueToMint, mintFunctionCall, this.account);
-    const transactionResult = await transaction.sendTransaction();
+    const transactionHash = await transaction.sendTransaction();
 
-    log(
-      this.protocolName,
-      `${this.walletAddress}: Minted ZkSync Domain Name ${name}.zk | TX: ${ERA.explorer}/${transactionResult}`
-    );
+    return { transactionHash, message: `Minted ZkSync Domain Name ${name}.zk` };
   }
 
   generateName() {

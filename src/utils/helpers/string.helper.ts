@@ -1,3 +1,3 @@
-export const extractNumbersFromString = (str: string): string[] => {
-  return str.match(/\d+/g) as string[];
+export const extractNumbersFromString = (str: string): string[] | null => {
+  return str.match(/\d+/g);
 };
