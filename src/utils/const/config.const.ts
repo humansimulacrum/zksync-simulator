@@ -5,7 +5,7 @@ export const sleepOnHighGas = 60000;
 export const sleepBetweenWalletsFrom = 300;
 export const sleepBetweenWalletsTo = 600;
 
-export const slippage = 0.98; // 98% from token price is set as minimum out amount on swap
+export const slippage = 0.95; // 98% from token price is set as minimum out amount on swap
 
 export const minAmountOfTokenToSwapInUsd = 0.15;
 

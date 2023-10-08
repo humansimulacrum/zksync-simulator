@@ -18,7 +18,7 @@ export const log = (message: string) => {
 };
 
 export const logWithFormatting = (protocolName: string, message: string) => {
-  const logMessage = `${moduleName} - ${protocolName}. ${message}`;
+  const logMessage = `${moduleName} | ${protocolName}. ${message}`;
   log(logMessage);
 };
 
@@ -51,6 +51,6 @@ export const sleepLogWrapper = async (millis: number, walletAddr: string, messag
 };
 
 export const logSuccessfullAction = (executeOutput: ExecuteOutput, walletAddress: string) => {
-  const message = `${moduleName} | ${walletAddress} : ${executeOutput.protocolName} - ${executeOutput.message} | TX: ${executeOutput.chain.explorer}/${executeOutput.transactionHash}`;
+  const message = `${moduleName} | ${walletAddress} : ${executeOutput.protocolName} | ${executeOutput.message} | TX: ${executeOutput.chain.explorer}/${executeOutput.transactionHash}`;
   log(message);
 };

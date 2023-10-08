@@ -6,7 +6,7 @@ export async function main() {
   await connectToDatabase();
 
   const tokenModule = await TokenModule.create();
-  // await tokenModule.upsertTokens();
+  await tokenModule.upsertTokens();
 
   const executorModule = await Executor.create();
   await executorModule.executeActionsOnBatch();

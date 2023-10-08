@@ -11,7 +11,7 @@ export const TokenRepository = AppDataSource.getRepository(Token).extend({
         .update(Token)
         .set({
           ...token,
-          priceIsUsd: token.priceIsUsd, // Or other fields you want to update
+          priceInUsd: token.priceInUsd, // Or other fields you want to update
         })
         .where('symbol = :symbol AND contractAddress = :contractAddress', {
           symbol: token.symbol,

@@ -58,12 +58,12 @@ export class TokenModule {
     const symbolContractTuples = Object.entries(TOKENS_SUPPORTED) as [TokenSymbol, string][];
 
     const promiseList = symbolContractTuples.map(async ([symbol, contractAddress]): Promise<Omit<Token, 'id'>> => {
-      const priceIsUsdPromise = getTokenPriceCryptoCompare(symbol);
+      const priceInUsdPromise = getTokenPriceCryptoCompare(symbol);
       const decimalsPromise = this.getDecimalsFromContractAddress(contractAddress);
 
-      const [priceIsUsd, decimals] = await Promise.all([priceIsUsdPromise, decimalsPromise]);
+      const [priceInUsd, decimals] = await Promise.all([priceInUsdPromise, decimalsPromise]);
 
-      return { symbol, contractAddress, priceIsUsd, decimals };
+      return { symbol, contractAddress, priceInUsd, decimals };
     });
 
     const tokenPayloads = await Promise.all(promiseList);
@@ -115,7 +115,7 @@ export class TokenModule {
 
   calculateValueInUsd(token: Token, amountInWei: string) {
     const readableAmount = TokenModule.getReadableAmountWithToken(amountInWei, token);
-    return Number(readableAmount) * token.priceIsUsd;
+    return Number(readableAmount) * token.priceInUsd;
   }
 
   getTokensBySymbols(symbols: TokenSymbol[]) {

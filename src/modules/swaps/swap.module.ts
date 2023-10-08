@@ -65,10 +65,8 @@ export abstract class Swap extends ExecutableModule {
 
     const transactionHash = await this.sendSwapTransaction(functionCall, fromToken.symbol, amountWithPrecision);
 
-    const message = `Swapped ${TokenModule.getReadableAmountWithToken(
-      amountWithPrecision,
-      fromToken
-    )} ${fromToken} => ${toToken}`;
+    const readableAmount = TokenModule.getReadableAmountWithToken(amountWithPrecision, fromToken);
+    const message = `Swapped ${readableAmount} ${fromToken.symbol} => ${toToken.symbol}`;
 
     return { transactionHash, message };
   }
@@ -127,6 +125,6 @@ export abstract class Swap extends ExecutableModule {
   }
 
   private getMinOutAmount(fromToken: Token, toToken: Token, fromTokenAmount: string): string {
-    return String(((Number(fromTokenAmount) * fromToken.priceIsUsd) / toToken.priceIsUsd) * slippage);
+    return (((Number(fromTokenAmount) * fromToken.priceInUsd) / toToken.priceInUsd) * slippage).toFixed(7);
   }
 }

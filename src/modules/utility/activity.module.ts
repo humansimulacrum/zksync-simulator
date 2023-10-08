@@ -83,7 +83,7 @@ export class ActivityModule {
 
     const etherPrice = await getTokenPriceCryptoCompare('ETH');
 
-    let gasSpentInUsd = fromWei(sumInWei) * etherPrice;
+    let gasSpentInUsd = Number(fromWei(sumInWei.toFixed(0))) * etherPrice;
 
     if (gasSpentInUsd && isNaN(gasSpentInUsd)) {
       gasSpentInUsd = 0;

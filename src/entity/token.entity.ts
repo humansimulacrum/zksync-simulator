@@ -15,6 +15,6 @@ export class Token {
   @Column()
   contractAddress: string;
 
-  @Column()
-  priceIsUsd: number;
+  @Column('decimal', { precision: 6, scale: 2 })
+  priceInUsd: number;
 }

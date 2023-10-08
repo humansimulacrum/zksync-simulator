@@ -121,6 +121,10 @@ export class SwapCalculator {
   private async switchContractForEthToWeth(fromToken: Token, toToken: Token) {
     const wethInstance = (await this.tokenModule.getTokensBySymbols(['WETH']))[0];
 
+    if (fromToken.symbol === 'ETH') {
+      fromToken.contractAddress = wethInstance.contractAddress;
+    }
+
     if (toToken.symbol === 'ETH') {
       toToken.contractAddress = wethInstance.contractAddress;
     }
