@@ -4,8 +4,7 @@ import Contract from 'web3-eth-contract';
 import { AbiItem } from 'web3-utils';
 
 import { Chain, ERA } from '../../utils/const/chains.const';
-import { getAbiByRelativePath, randomIntInRange } from '../../utils/helpers';
-import { englishWords } from '../../utils/const/words.const';
+import { generateName, getAbiByRelativePath } from '../../utils/helpers';
 import { toWei } from '../../utils/helpers/wei.helper';
 import { Transaction } from '../utility/transaction.module';
 import { ExecutableModule, ExecuteOutput, ModuleOutput } from '../../utils/interfaces/execute.interface';
@@ -68,16 +67,11 @@ export class ZkSyncNameService implements ExecutableModule {
     return { transactionHash, message: `Minted ZkSync Domain Name ${name}.zk` };
   }
 
-  generateName() {
-    const wordCount = englishWords.length;
-    return englishWords[randomIntInRange(0, wordCount)] + englishWords[randomIntInRange(0, wordCount)];
-  }
-
   async chooseName() {
     let name;
 
     while (true) {
-      name = this.generateName();
+      name = generateName();
       const isTaken = await this.checkEligibility(name);
       if (isTaken === 0) {
         break;

@@ -1,5 +1,5 @@
 import Web3 from 'web3';
-import { ERA } from '../../utils/const/chains.const';
+import { ERA, ETH } from '../../utils/const/chains.const';
 import {
   accountPicker,
   choose,
@@ -23,18 +23,21 @@ import { TierModule } from './tier.module';
 
 export class Executor {
   web3: Web3;
+  mainnetWeb3: Web3;
   accounts: Account[];
 
-  constructor(web3: Web3, accounts: Account[]) {
+  constructor(web3: Web3, mainnetWeb3: Web3, accounts: Account[]) {
     this.web3 = web3;
+    this.mainnetWeb3 = mainnetWeb3;
     this.accounts = accounts;
   }
 
   static async create() {
     const web3 = new Web3(ERA.rpc);
+    const mainnetWeb3 = new Web3(ETH.rpc);
     const accounts = await accountPicker();
 
-    return new Executor(web3, accounts);
+    return new Executor(web3, mainnetWeb3, accounts);
   }
 
   async executeActionsOnBatch() {
@@ -76,13 +79,13 @@ export class Executor {
   };
 
   private pickRandomSwap() {
-    const SWAPS = [MuteSwap];
+    const SWAPS = [SpaceFiSwap, MuteSwap, SyncSwap, Velocore];
     return choose(SWAPS);
   }
 
   private isGasOkay = async (account: Account) => {
-    const baseFee = (await this.web3.eth.getBlock('latest')).baseFeePerGas;
-    const currentGas = Number(Web3.utils.fromWei(String(baseFee), 'Gwei'));
+    const gasPrice = await this.mainnetWeb3.eth.getGasPrice();
+    const currentGas = Number(Web3.utils.fromWei(gasPrice, 'Gwei'));
 
     const isGasHigher = currentGas <= maxGwei;
 

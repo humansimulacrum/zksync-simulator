@@ -61,7 +61,7 @@ export class ZkSyncBridge implements ExecutableModule {
 
   async bridge(amountToBridgeMin: number, amountToBridgeMax: number): Promise<ModuleOutput> {
     const amountToBridgeEth = randomIntInRange(amountToBridgeMin, amountToBridgeMax);
-    const amountToBridgeWei = toWei(String(amountToBridgeEth));
+    const amountToBridgeWei = toWei(amountToBridgeEth);
 
     logWithFormatting(this.protocolName, `${this.walletAddress}: Sending ${amountToBridgeEth} ETH to ZkSync`);
 

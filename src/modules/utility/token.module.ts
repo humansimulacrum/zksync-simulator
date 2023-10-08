@@ -50,13 +50,7 @@ export class TokenModule {
 
     const approveFunctionCall = tokenContactInstance.methods.approve(protocolContractAddress, amountToApprove);
 
-    const approveTransaction = new Transaction(
-      this.web3,
-      protocolContractAddress,
-      amountToApprove,
-      approveFunctionCall,
-      account
-    );
+    const approveTransaction = new Transaction(this.web3, tokenContractAddress, '0', approveFunctionCall, account);
     return approveTransaction.sendTransaction();
   }
 
@@ -111,11 +105,11 @@ export class TokenModule {
     return balanceInWei;
   }
 
-  static getAmountWithPrecisionWithToken(readableAmount: string, token: Token): string {
+  static getAmountWithPrecisionWithToken(readableAmount: string | number, token: Token): string {
     return toWei(readableAmount, token.decimals);
   }
 
-  static getReadableAmountWithToken(amountWithPrecision: string, token: Token): string {
+  static getReadableAmountWithToken(amountWithPrecision: string | number, token: Token): string {
     return fromWei(amountWithPrecision, token.decimals);
   }
 

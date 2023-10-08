@@ -17,7 +17,10 @@ export class Velocore extends Swap {
     const velocoreAbi = getAbiByRelativePath('../abi/velocoreRouter.json');
     const velocoreRouter = new this.web3.eth.Contract(velocoreAbi, this.protocolRouterContract);
 
-    const path = [fromToken.contractAddress, toToken.contractAddress];
+    // since now auto swap doesn't give routes for stable swap (USDC => USDT)
+    const isStableRoute = false;
+
+    const path = [fromToken.contractAddress, toToken.contractAddress, isStableRoute];
     const steps = [path];
 
     if (fromToken.symbol === 'ETH') {
