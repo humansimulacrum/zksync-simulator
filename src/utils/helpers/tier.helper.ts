@@ -95,18 +95,20 @@ function activityToActivityPriorityMatcher(account: Account) {
       return activity!.officialBridge;
     }
 
-    if (activityType === 'Transactions') {
-      return activity!.transactionCount;
-    }
-
-    if (activityType === 'Rank') {
-      return activity!.rank * -1;
-    }
-
     if (activityType === 'ZkDomain') {
       return activity!.zkSyncDomain;
     }
 
-    return false;
+    if (activityType === 'Transactions') {
+      return activity!.transactionCount;
+    }
+
+    if (activityType === 'Volume') {
+      return activity?.transactionVolume;
+    }
+
+    if (activityType === 'Smart Contract Amount') {
+      return activity?.uniqueContractCount;
+    }
   });
 }

@@ -1,8 +1,7 @@
 import { Account } from '../../entity';
-import { executableActivitiesSortedByPriority } from '../../utils/const/tiers.const';
+import { activitiesSortedByPriority } from '../../utils/const/tiers.const';
 import { ActionType } from '../../utils/enums/action-type.enum';
 import { ActivityType } from '../../utils/enums/activity-type.enum';
-import { ExecutableActivity } from '../../utils/types/executable-activities.type';
 
 export class TierModule {
   account: Account;
@@ -11,19 +10,17 @@ export class TierModule {
     this.account = account;
   }
 
-  activityToCheckerMapper: Record<ExecutableActivity, () => boolean> = {
+  activityToCheckerMapper: Record<ActivityType, () => boolean> = {
     [ActivityType.OfficialBridge]: this.isOfficialBridgeRequirementSatisfied.bind(this),
     [ActivityType.Transactions]: this.isTransactionsRequirementSatisfied.bind(this),
-    [ActivityType.ENS]: this.isEnsRequirementSatisfied.bind(this),
     [ActivityType.ContractAmount]: this.isContractsAmountRequirementSatisfied.bind(this),
     [ActivityType.Volume]: this.isVolumeRequirementSatisfied.bind(this),
     [ActivityType.ZkDomain]: this.isDomainRequirementSatisfied.bind(this),
   };
 
-  activityToActionTypeFinderMapper: Record<ExecutableActivity, () => ActionType> = {
+  activityToActionTypeFinderMapper: Record<ActivityType, () => ActionType> = {
     [ActivityType.Transactions]: this.findActionTypeForTransactions.bind(this),
     [ActivityType.ContractAmount]: this.findActionTypeForTransactions.bind(this),
-    [ActivityType.ENS]: this.findActionTypeForTransactions.bind(this),
     [ActivityType.Volume]: this.findActionTypeForTransactions.bind(this),
     [ActivityType.ZkDomain]: this.findActionTypeForTransactions.bind(this),
     [ActivityType.OfficialBridge]: this.findActionTypeForTransactions.bind(this),
@@ -34,14 +31,14 @@ export class TierModule {
 
     if (!neededActivity) {
       // keeping account alive by random swap transaction
-      return ActionType.RandomSwap;
+      return ActionType.RandomCheap;
     }
 
     return this.activityToActionTypeFinderMapper[neededActivity]();
   }
 
   findNeededActivities() {
-    for (const activity of executableActivitiesSortedByPriority) {
+    for (const activity of activitiesSortedByPriority) {
       const checker = this.activityToCheckerMapper[activity];
 
       const isRequirementSatisfied = checker();
@@ -60,10 +57,6 @@ export class TierModule {
 
   private isTransactionsRequirementSatisfied() {
     return this.account.activity?.transactionCount! >= this.account.tier?.transactionCountNeeded!;
-  }
-
-  private isEnsRequirementSatisfied() {
-    return true;
   }
 
   private isContractsAmountRequirementSatisfied() {

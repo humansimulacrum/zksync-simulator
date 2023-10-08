@@ -60,9 +60,15 @@ export class Executor {
     const tierModule = new TierModule(account);
     const actionType = tierModule.findActionForAccount();
 
-    const executableModule = this.actionTypeToExecutableMapper[actionType];
-    const initializedExecutable = new executableModule(account.privateKey);
+    let executableModule;
 
+    if (actionType === ActionType.RandomCheap) {
+      executableModule = this.pickRandomCheapActivity(account);
+    } else {
+      executableModule = this.actionTypeToExecutableMapper[actionType];
+    }
+
+    const initializedExecutable = new executableModule(account.privateKey);
     return initializedExecutable;
   }
 
@@ -81,6 +87,14 @@ export class Executor {
   private pickRandomSwap() {
     const SWAPS = [SpaceFiSwap, MuteSwap, SyncSwap, Velocore];
     return choose(SWAPS);
+  }
+
+  private pickRandomCheapActivity(account: Account) {
+    if (account.tier?.dmailerAllowed) {
+      return this.actionTypeToExecutableMapper[ActionType.Dmail];
+    }
+
+    return this.pickRandomSwap();
   }
 
   private isGasOkay = async (account: Account) => {

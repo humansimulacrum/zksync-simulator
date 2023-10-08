@@ -18,12 +18,14 @@ export class Tier {
   @Column()
   zkSyncDomainNeeded: boolean;
 
-  // @Column()
-  // dmailerAllowed: boolean;
+  @Column()
+  dmailerAllowed: boolean;
 
-  // in future
-  // volume: number;
-  // uniqueSmartContracts: number;
+  @Column()
+  volume: number;
+
+  @Column()
+  uniqueSmartContracts: number;
 
   @OneToMany(() => Account, (account) => account.tier)
   accounts: Account[];

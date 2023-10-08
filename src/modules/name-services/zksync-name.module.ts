@@ -25,14 +25,20 @@ export class ZkSyncNameService implements ExecutableModule {
   contractAbi: AbiItem[];
   contract: Contract;
 
-  constructor(privateKey: string) {
+  constructor(privateKey?: string, walletAddress?: string) {
     this.protocolName = ActionType.ZkNS;
 
     this.chain = ERA;
     this.web3 = new Web3(this.chain.rpc);
 
-    this.account = this.web3.eth.accounts.privateKeyToAccount(privateKey);
-    this.walletAddress = this.account.address;
+    if (privateKey) {
+      this.account = this.web3.eth.accounts.privateKeyToAccount(privateKey);
+      this.walletAddress = this.account.address;
+    }
+
+    if (walletAddress) {
+      this.walletAddress = walletAddress;
+    }
 
     this.contractAddr = ZKSYNC_NAME_CONTRACT;
     this.contractAbi = getAbiByRelativePath('../abi/eraNameService.json');
@@ -58,10 +64,12 @@ export class ZkSyncNameService implements ExecutableModule {
   async mint(): Promise<ModuleOutput> {
     const name = await this.chooseName();
 
-    const mintFunctionCall = this.contract.methods.register(name);
-    const valueToMint = toWei('0.0026');
+    const mintPrice = 0.0026;
+    const mintPriceWei = toWei(mintPrice);
 
-    const transaction = new Transaction(this.web3, this.contractAddr, valueToMint, mintFunctionCall, this.account);
+    const mintFunctionCall = this.contract.methods.register(name);
+
+    const transaction = new Transaction(this.web3, this.contractAddr, mintPriceWei, mintFunctionCall, this.account);
     const transactionHash = await transaction.sendTransaction();
 
     return { transactionHash, message: `Minted ZkSync Domain Name ${name}.zk` };

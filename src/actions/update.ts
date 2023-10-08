@@ -5,8 +5,8 @@ import { logWithFormatting } from '../utils/helpers';
 
 async function actualizeActivityAll() {
   await connectToDatabase();
-  const activityModule = await ActivityModule.create();
 
+  const activityModule = await ActivityModule.create();
   const accounts = await AccountRepository.find();
 
   const promiseArray = accounts.map(async (account) => {

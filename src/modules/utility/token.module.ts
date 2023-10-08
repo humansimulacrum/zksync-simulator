@@ -11,6 +11,7 @@ import { Token } from '../../entity/token.entity';
 import { TokenSymbol } from '../../utils/types/token-symbol.type';
 import { TokenBalance } from '../../utils/interfaces/balance.interface';
 import { fromWei, toWei } from '../../utils/helpers/wei.helper';
+import { TokenMap } from '../../utils/types/token-map.type';
 
 export class TokenModule {
   moduleName = 'TokenModule';
@@ -68,6 +69,17 @@ export class TokenModule {
 
     const tokenPayloads = await Promise.all(promiseList);
     await TokenRepository.upsertTokens(tokenPayloads);
+  }
+
+  async getTokenMap(): Promise<TokenMap> {
+    const tokens = await TokenRepository.getAllTokens();
+    const map = {} as TokenMap;
+
+    tokens.forEach((token) => {
+      map[token.symbol] = token;
+    });
+
+    return map;
   }
 
   async getBalanceAll(addressToCheckOn: string): Promise<TokenBalance[]> {
