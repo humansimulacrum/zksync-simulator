@@ -14,43 +14,44 @@ import { fromWei, toWei } from '../../utils/helpers/wei.helper';
 
 export class TokenModule {
   moduleName = 'TokenModule';
+
   proxies: string[];
   web3: Web3;
+  erc20Abi: any;
 
-  private constructor(proxies: string[], web3: Web3) {
+  private constructor(proxies: string[], erc20Abi: any, web3: Web3) {
     this.proxies = proxies;
     this.web3 = web3;
+    this.erc20Abi = erc20Abi;
   }
 
   static async create(rpcUrl?: string): Promise<TokenModule> {
     const proxies = await importProxies();
     const web3 = new Web3(rpcUrl ? rpcUrl : ERA.rpc);
+    const erc20Abi = getAbiByRelativePath('../abi/erc20.json');
 
-    return new TokenModule(proxies, web3);
+    return new TokenModule(proxies, erc20Abi, web3);
   }
 
-  async getBalanceByContractAddress(tokenContractAddress: string, addressToCheckOn: string): Promise<number> {
-    const fromTokenContractInstance = await this.getTokenContractInstanceByAddress(tokenContractAddress);
-    return fromTokenContractInstance.methods.balanceOf(addressToCheckOn).call();
-  }
+  async approveToken(
+    amountToApprove: string,
+    account: Account,
+    tokenContractAddress: string,
+    protocolContractAddress: string
+  ) {
+    const tokenContactInstance = this.getTokenContractInstanceByAddress(tokenContractAddress);
+    const allowanceAmount = await tokenContactInstance.methods
+      .allowance(account.address, protocolContractAddress)
+      .call();
 
-  async getBalanceAll(addressToCheckOn: string): Promise<TokenBalance[]> {
-    const tokens = await TokenRepository.getAllTokens();
+    if (allowanceAmount > amountToApprove) {
+      return true;
+    }
 
-    const promiseArray = tokens.map(async (token): Promise<TokenBalance> => {
-      const balanceInToken = await this.getBalanceByContractAddress(token.contractAddress, addressToCheckOn);
-      const valueInUsd = await this.calculateValueInUsd(token, balanceInToken);
+    const approveFunctionCall = await tokenContactInstance.methods.approve(protocolContractAddress, amountToApprove);
 
-      return {
-        symbol: token.symbol,
-        decimals: token.decimals,
-        valueInToken: balanceInToken,
-        valueInUsd,
-      };
-    });
-
-    const accountBalance = await Promise.all(promiseArray);
-    return accountBalance;
+    const approveTransaction = new Transaction(this.web3, protocolContractAddress, '0', approveFunctionCall, account);
+    return approveTransaction.sendTransaction();
   }
 
   async upsertTokens(): Promise<void> {
@@ -69,78 +70,70 @@ export class TokenModule {
     await TokenRepository.upsertTokens(tokenPayloads);
   }
 
+  async getBalanceAll(addressToCheckOn: string): Promise<TokenBalance[]> {
+    const tokens = await TokenRepository.getAllTokens();
+
+    const promiseArray = tokens.map(async (token): Promise<TokenBalance> => {
+      const balanceInTokenWei = await this.getBalanceByTokenWei(token, addressToCheckOn);
+      const valueInUsd = await this.calculateValueInUsd(token, balanceInTokenWei);
+
+      return {
+        symbol: token.symbol,
+        decimals: token.decimals,
+        valueInToken: balanceInTokenWei,
+        valueInUsd,
+      };
+    });
+
+    const accountBalance = await Promise.all(promiseArray);
+    return accountBalance;
+  }
+
+  async getBalanceByTokenReadable(token: Token, addressToCheckOn: string): Promise<string> {
+    const balanceInWei = await this.getBalanceByTokenWei(token, addressToCheckOn);
+    return TokenModule.getReadableAmountWithToken(balanceInWei, token);
+  }
+
+  async getBalanceByTokenWei(token: Token, addressToCheckOn: string): Promise<string> {
+    if (token.symbol === 'ETH') {
+      return this.getBalanceNative(addressToCheckOn);
+    }
+
+    const fromTokenContractInstance = await this.getTokenContractInstanceByAddress(token.contractAddress);
+    const balanceInWei = await fromTokenContractInstance.methods.balanceOf(addressToCheckOn).call();
+
+    return balanceInWei;
+  }
+
+  static getAmountWithPrecisionWithToken(readableAmount: string, token: Token): string {
+    return toWei(readableAmount, token.decimals);
+  }
+
+  static getReadableAmountWithToken(amountWithPrecision: string, token: Token): string {
+    return fromWei(amountWithPrecision, token.decimals);
+  }
+
+  calculateValueInUsd(token: Token, amountInWei: string) {
+    const readableAmount = TokenModule.getReadableAmountWithToken(amountInWei, token);
+    return Number(readableAmount) * token.priceIsUsd;
+  }
+
   getTokensBySymbols(symbols: TokenSymbol[]) {
     return TokenRepository.findBySymbols(symbols);
   }
 
-  async getTokenContractAddressBySymbol(symbol: TokenSymbol) {
-    const token = await TokenRepository.findBySymbolOne(symbol);
-
-    if (!token) {
-      throw new Error('Tokens are not imported');
-    }
-
-    return token.contractAddress;
-  }
-
-  async getTokenContractInstanceBySymbol(symbol: TokenSymbol): Promise<Contract> {
-    const address = await this.getTokenContractAddressBySymbol(symbol);
-    return this.getTokenContractInstanceByAddress(address);
-  }
-
-  getTokenContractInstanceByAddress(address: string): Contract {
-    const erc20Abi = getAbiByRelativePath('../abi/erc20.json');
-    return new this.web3.eth.Contract(erc20Abi, address);
-  }
-
-  async calculateValueInUsd(token: Token, amountWithPrecision: number) {
-    const readableAmount = await this.getReadableAmountWithContractAddress(amountWithPrecision, token.contractAddress);
-    return readableAmount * token.priceIsUsd;
-  }
-
-  async getDecimalsFromContractAddress(tokenContactAddress: string) {
+  private async getDecimalsFromContractAddress(tokenContactAddress: string) {
     const tokenContractInstance = await this.getTokenContractInstanceByAddress(tokenContactAddress);
     const decimals = await tokenContractInstance.methods.decimals().call();
 
     return decimals;
   }
 
-  getAmountWithPrecisionWithDecimals(readableAmount: number, decimals: number) {
-    return toWei(readableAmount, decimals);
+  private getTokenContractInstanceByAddress(address: string): Contract {
+    return new this.web3.eth.Contract(this.erc20Abi, address);
   }
 
-  getReadableAmountWithDecimals(amountWithPrecision: number, decimals: number) {
-    return fromWei(amountWithPrecision, decimals);
-  }
-
-  async getAmountWithPrecisionWithContractAddress(readableAmount: number, contractAddress: string) {
-    const decimals = await this.getDecimalsFromContractAddress(contractAddress);
-    return toWei(readableAmount, decimals);
-  }
-
-  async getReadableAmountWithContractAddress(amountWithPrecision: number, contractAddress: string) {
-    const decimals = await this.getDecimalsFromContractAddress(contractAddress);
-    return fromWei(amountWithPrecision, decimals);
-  }
-
-  async approveToken(
-    amountToApprove: number,
-    account: Account,
-    tokenContractAddress: string,
-    protocolContractAddress: string
-  ) {
-    const tokenContactInstance = this.getTokenContractInstanceByAddress(tokenContractAddress);
-    const allowanceAmount = await tokenContactInstance.methods
-      .allowance(account.address, protocolContractAddress)
-      .call();
-
-    if (allowanceAmount > amountToApprove) {
-      return true;
-    }
-
-    const approveFunctionCall = await tokenContactInstance.methods.approve(protocolContractAddress, amountToApprove);
-
-    const approveTransaction = new Transaction(this.web3, protocolContractAddress, 0, approveFunctionCall, account);
-    return approveTransaction.sendTransaction();
+  private async getBalanceNative(walletAddress: string): Promise<string> {
+    return this.web3.eth.getBalance(walletAddress);
   }
 }

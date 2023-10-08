@@ -7,7 +7,7 @@ import { Provider } from 'zksync-web3';
 import { ethers } from 'ethers';
 
 import { Chain, ERA, ETH } from '../../utils/const/chains.const';
-import { getAbiByRelativePath, logWithFormatting, randomFloatInRange } from '../../utils/helpers';
+import { getAbiByRelativePath, logWithFormatting, randomFloatInRange, randomIntInRange } from '../../utils/helpers';
 import { toWei } from '../../utils/helpers/wei.helper';
 import { Transaction } from '../utility/transaction.module';
 import { TokenModule } from '../utility/token.module';
@@ -51,8 +51,8 @@ export class ZkSyncBridge implements ExecutableModule {
   async execute(): Promise<ExecuteOutput> {
     const balanceInMainnetReadable = await this.getBalanceInMainnet();
 
-    const amountToBridgeMin = partOfEthToBridgeMin * balanceInMainnetReadable;
-    const amountToBridgeMax = partOfEthToBridgeMax * balanceInMainnetReadable;
+    const amountToBridgeMin = partOfEthToBridgeMin * Number(balanceInMainnetReadable);
+    const amountToBridgeMax = partOfEthToBridgeMax * Number(balanceInMainnetReadable);
 
     const { transactionHash, message } = await this.bridge(amountToBridgeMin, amountToBridgeMax);
 
@@ -60,13 +60,13 @@ export class ZkSyncBridge implements ExecutableModule {
   }
 
   async bridge(amountToBridgeMin: number, amountToBridgeMax: number): Promise<ModuleOutput> {
-    const amountToBridgeEth = randomFloatInRange(amountToBridgeMin, amountToBridgeMax, 10);
-    const amountToBridgeWei = toWei(amountToBridgeEth);
+    const amountToBridgeEth = randomIntInRange(amountToBridgeMin, amountToBridgeMax);
+    const amountToBridgeWei = toWei(String(amountToBridgeEth));
 
     logWithFormatting(this.protocolName, `${this.walletAddress}: Sending ${amountToBridgeEth} ETH to ZkSync`);
 
     const contractAddressL2 = this.walletAddress;
-    const l2Value = amountToBridgeWei.toString();
+    const l2Value = amountToBridgeWei;
     const calldata: [] = [];
     // numbers are taken from transaction performed through UI
     const l2GasLimit = 733664;
@@ -97,7 +97,7 @@ export class ZkSyncBridge implements ExecutableModule {
     const tx = new Transaction(
       this.web3,
       this.contractAddress,
-      amountWithL2Fee.toNumber(),
+      amountWithL2Fee.toString(),
       bridgeFunctionCall,
       this.account,
       {
@@ -115,13 +115,9 @@ export class ZkSyncBridge implements ExecutableModule {
 
   private async getBalanceInMainnet() {
     const tokenModule = await TokenModule.create(ETH.rpc);
-    const balanceInMainnet = await tokenModule.getBalanceByContractAddress(
-      ethers.constants.AddressZero,
-      this.walletAddress
-    );
+    const ethToken = (await tokenModule.getTokensBySymbols(['ETH']))[0];
 
-    const balanceReadable = tokenModule.getReadableAmountWithDecimals(balanceInMainnet, 18);
-
-    return balanceReadable;
+    const balanceInMainnet = await tokenModule.getBalanceByTokenReadable(ethToken, this.walletAddress);
+    return balanceInMainnet;
   }
 }

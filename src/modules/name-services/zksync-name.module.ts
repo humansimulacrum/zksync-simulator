@@ -60,7 +60,7 @@ export class ZkSyncNameService implements ExecutableModule {
     const name = await this.chooseName();
 
     const mintFunctionCall = this.contract.methods.register(name);
-    const valueToMint = toWei(0.0026);
+    const valueToMint = toWei('0.0026');
 
     const transaction = new Transaction(this.web3, this.contractAddr, valueToMint, mintFunctionCall, this.account);
     const transactionHash = await transaction.sendTransaction();

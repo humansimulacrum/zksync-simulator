@@ -35,13 +35,8 @@ async function importAccountAndActivities(privateKey: string, activityModule: Ac
   const account = await AccountRepository.createAccount(privateKey, walletAddress);
   const activity = await activityModule.actualizeActivity(account);
 
-  await setAccountActivityRelationship(account.id, activity.id);
+  await activityModule.setAccountActivityRelationship(account.id, activity.id);
   logWithFormatting(PROTOCOL_NAME, `${walletAddress}: Saved to DB.`);
-}
-
-async function setAccountActivityRelationship(accountId: string, activityId: string) {
-  await ActivityRepository.updateById(activityId, { account: { id: accountId } });
-  await AccountRepository.updateById(accountId, { activity: { id: activityId } });
 }
 
 importAccounts();

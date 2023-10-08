@@ -7,6 +7,7 @@ import { ActivityRepository } from '../../repositories/activity.repository';
 import { Account } from '../../entity/account.entity';
 import { ERA } from '../../utils/const/chains.const';
 import { fromWei } from '../../utils/helpers/wei.helper';
+import { AccountRepository } from '../../repositories';
 
 export class ActivityModule {
   moduleName = 'ActivityModule';
@@ -55,10 +56,18 @@ export class ActivityModule {
     const currentActivity = await this.getActivity(account.walletAddress);
 
     if (!account.activity) {
-      return ActivityRepository.create(currentActivity);
+      const newActivity = ActivityRepository.create(currentActivity);
+      await ActivityRepository.save(newActivity);
+
+      return newActivity;
     }
 
     return ActivityRepository.updateAndReturnOneById(account.activity.id, { ...currentActivity });
+  }
+
+  async setAccountActivityRelationship(accountId: string, activityId: string) {
+    await ActivityRepository.updateById(activityId, { account: { id: accountId } });
+    await AccountRepository.updateById(accountId, { activity: { id: activityId } });
   }
 
   private async getTransactionCount(walletAddr: string) {

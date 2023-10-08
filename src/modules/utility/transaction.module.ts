@@ -8,7 +8,7 @@ export class Transaction {
   account: Account;
 
   to: string;
-  value: number;
+  value: string;
 
   functionCall: FunctionCall;
   transactionConfig?: Partial<TransactionConfig>;
@@ -16,7 +16,7 @@ export class Transaction {
   constructor(
     web3: Web3,
     to: string,
-    value: number,
+    value: string,
     functionCall: FunctionCall,
     account: Account,
     transactionConfig?: Partial<TransactionConfig>

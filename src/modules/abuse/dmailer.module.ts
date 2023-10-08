@@ -41,7 +41,7 @@ export class Dmail {
 
     const dmailFunctionCall = dmailContractInstance.methods.send_mail(destinationEmailAddr, emailSubject);
 
-    const tx = new Transaction(this.web3, this.protocolContractAddr, 0, dmailFunctionCall, this.account);
+    const tx = new Transaction(this.web3, this.protocolContractAddr, '0', dmailFunctionCall, this.account);
     const transactionHash = await tx.sendTransaction();
 
     const message = `Sent message to ${destinationEmailAddr}.`;

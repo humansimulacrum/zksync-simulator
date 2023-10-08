@@ -9,13 +9,13 @@ export const slippage = 0.98; // 98% from token price is set as minimum out amou
 
 export const minAmountOfTokenToSwapInUsd = 0.15;
 
-export const moduleName = 'zksync-simulator';
+export const moduleName = 'ZkSync-Simulator';
 export const logFilePath = 'logs.txt';
 
 // picker options
 
 export const daysBetweenTransactionsOnAccount = 30; // one transaction each week, when activity is kept
-export const accountsInBatch = 3;
+export const accountsInBatch = 1;
 
 // swap config
 export const partOfEthToSwapMin = 0.4; // 40% of current eth balance

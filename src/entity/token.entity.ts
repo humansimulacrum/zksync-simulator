@@ -1,5 +1,4 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { TOKENS_SUPPORTED } from '../utils/const/token-contracts.const';
 import { TokenSymbol } from '../utils/types/token-symbol.type';
 
 @Entity()

@@ -10,7 +10,9 @@ async function actualizeActivityAll() {
   const accounts = await AccountRepository.find();
 
   const promiseArray = accounts.map(async (account) => {
-    await activityModule.actualizeActivity(account);
+    const activity = await activityModule.actualizeActivity(account);
+    await activityModule.setAccountActivityRelationship(account.id, activity.id);
+
     logWithFormatting('Account Activity Actualizer', `${account.walletAddress!}: Activity Actualized!`);
   });
 

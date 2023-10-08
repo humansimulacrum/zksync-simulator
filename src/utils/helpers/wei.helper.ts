@@ -1,17 +1,17 @@
 import Web3 from 'web3';
 
-export const toWei = (etherAmount: number, decimals?: number): number => {
+export const toWei = (etherAmount: string, decimals?: number): string => {
   if (!decimals || decimals === 18) {
-    return parseInt(Web3.utils.toWei(String(etherAmount), 'ether'));
+    return Web3.utils.toWei(String(etherAmount), 'ether');
   }
 
-  return etherAmount * 10 ** decimals;
+  return String(Number(etherAmount) * 10 ** decimals);
 };
 
-export const fromWei = (weiAmount: number, decimals?: number): number => {
+export const fromWei = (weiAmount: string, decimals?: number): string => {
   if (!decimals || decimals === 18) {
-    return parseInt(Web3.utils.fromWei(String(weiAmount), 'ether'));
+    return Web3.utils.fromWei(String(weiAmount), 'ether');
   }
 
-  return weiAmount / 10 ** decimals;
+  return String(Number(weiAmount) / 10 ** decimals);
 };

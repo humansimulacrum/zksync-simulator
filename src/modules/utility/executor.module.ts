@@ -76,7 +76,7 @@ export class Executor {
   };
 
   private pickRandomSwap() {
-    const SWAPS = [SyncSwap, MuteSwap, SpaceFiSwap];
+    const SWAPS = [MuteSwap];
     return choose(SWAPS);
   }
 

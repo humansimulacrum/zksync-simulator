@@ -5,7 +5,25 @@ import { TokenSymbol } from '../utils/types/token-symbol.type';
 
 export const TokenRepository = AppDataSource.getRepository(Token).extend({
   async upsertTokens(tokens: Array<Omit<Token, 'id'>>): Promise<void> {
-    await this.upsert(tokens, ['id', 'symbol', 'contractAddress']);
+    for (let token of tokens) {
+      // Try to update the token based on unique criteria
+      const updateResult = await this.createQueryBuilder()
+        .update(Token)
+        .set({
+          ...token,
+          priceIsUsd: token.priceIsUsd, // Or other fields you want to update
+        })
+        .where('symbol = :symbol AND contractAddress = :contractAddress', {
+          symbol: token.symbol,
+          contractAddress: token.contractAddress,
+        })
+        .execute();
+
+      // If update did not find a match, insert the new token
+      if (updateResult.affected === 0) {
+        await this.insert(token);
+      }
+    }
   },
 
   async findBySymbolOne(symbol: TokenSymbol) {

@@ -51,8 +51,7 @@ export abstract class Swap extends ExecutableModule {
   }
 
   async swap(swapInput: SwapInput): Promise<ModuleOutput> {
-    const { fromToken, toToken, amountToSwap, amountWithPrecision, minOutAmountWithPrecision } =
-      await this.prepareTokens(swapInput);
+    const { fromToken, toToken, amountWithPrecision, minOutAmountWithPrecision } = await this.prepareTokens(swapInput);
 
     const swapDeadline = await this.getSwapDeadline();
 
@@ -65,7 +64,11 @@ export abstract class Swap extends ExecutableModule {
     });
 
     const transactionHash = await this.sendSwapTransaction(functionCall, fromToken.symbol, amountWithPrecision);
-    const message = `Swapped ${amountToSwap} ${fromToken} => ${toToken}`;
+
+    const message = `Swapped ${TokenModule.getReadableAmountWithToken(
+      amountWithPrecision,
+      fromToken
+    )} ${fromToken} => ${toToken}`;
 
     return { transactionHash, message };
   }
@@ -73,15 +76,15 @@ export abstract class Swap extends ExecutableModule {
   abstract createSwapCalculator(): Promise<SwapCalculator>;
   abstract generateFunctionCall(functionCallInput: GenerateFunctionCallInput): Promise<FunctionCall>;
 
-  async prepareTokens({ fromToken, toToken, amountToSwap }: SwapInput) {
+  async prepareTokens({ fromToken, toToken, amountToSwap: amountWithPrecision }: SwapInput) {
     const tokenModule = await TokenModule.create();
 
     this.validateTokens(fromToken, toToken);
 
-    const amountWithPrecision = tokenModule.getAmountWithPrecisionWithDecimals(amountToSwap, fromToken.decimals);
+    const readableAmount = TokenModule.getReadableAmountWithToken(amountWithPrecision, fromToken);
 
-    const minOutAmount = this.getMinOutAmount(fromToken, toToken, amountToSwap);
-    const minOutAmountWithPrecision = tokenModule.getAmountWithPrecisionWithDecimals(minOutAmount, toToken.decimals);
+    const minOutAmount = this.getMinOutAmount(fromToken, toToken, readableAmount);
+    const minOutAmountWithPrecision = TokenModule.getAmountWithPrecisionWithToken(minOutAmount, toToken);
 
     if (fromToken.symbol !== 'ETH') {
       await tokenModule.approveToken(
@@ -95,14 +98,13 @@ export abstract class Swap extends ExecutableModule {
     return {
       fromToken,
       toToken,
-      amountToSwap,
       amountWithPrecision,
       minOutAmountWithPrecision,
     };
   }
 
-  async sendSwapTransaction(swapFunctionCall: FunctionCall, fromTokenSymbol: string, amountWithPrecision: number) {
-    const value = fromTokenSymbol === 'ETH' ? amountWithPrecision : 0;
+  async sendSwapTransaction(swapFunctionCall: FunctionCall, fromTokenSymbol: string, amountWithPrecision: string) {
+    const value = fromTokenSymbol === 'ETH' ? amountWithPrecision : '0';
     const swapTransaction = new Transaction(
       this.web3,
       this.protocolRouterContract,
@@ -124,7 +126,7 @@ export abstract class Swap extends ExecutableModule {
     }
   }
 
-  private getMinOutAmount(fromToken: Token, toToken: Token, fromTokenAmount: number) {
-    return ((fromTokenAmount * fromToken.priceIsUsd) / toToken.priceIsUsd) * slippage;
+  private getMinOutAmount(fromToken: Token, toToken: Token, fromTokenAmount: string): string {
+    return String(((Number(fromTokenAmount) * fromToken.priceIsUsd) / toToken.priceIsUsd) * slippage);
   }
 }

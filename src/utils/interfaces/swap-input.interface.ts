@@ -3,13 +3,13 @@ import { Token } from '../../entity/token.entity';
 export interface SwapInput {
   fromToken: Token;
   toToken: Token;
-  amountToSwap: number;
+  amountToSwap: string;
 }
 
 export interface GenerateFunctionCallInput {
   fromToken: Token;
   toToken: Token;
-  amountWithPrecision: number;
-  minOutAmountWithPrecision: number;
+  amountWithPrecision: string;
+  minOutAmountWithPrecision: string;
   swapDeadline: number;
 }

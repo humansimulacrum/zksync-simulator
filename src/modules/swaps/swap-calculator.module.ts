@@ -4,7 +4,8 @@ import { minAmountOfTokenToSwapInUsd, partOfEthToSwapMax, partOfEthToSwapMin } f
 import { TokenBalance } from '../../utils/interfaces/balance.interface';
 import { SwapInput } from '../../utils/interfaces/swap-input.interface';
 import { TokenSymbol } from '../../utils/types/token-symbol.type';
-import { choose, randomFloatInRange } from '../../utils/helpers/random.helper';
+import { choose, randomFloatInRange, randomIntInRange } from '../../utils/helpers/random.helper';
+import { Token } from '../../entity';
 
 export class SwapCalculator {
   swapInstance: Swap;
@@ -38,32 +39,6 @@ export class SwapCalculator {
     return this.getSwapInput(suitableTokens);
   }
 
-  private getSuitableTokensForSwap() {
-    if (!this.tokensOnWallet || !this.tokensOnWallet.length) {
-      throw new Error('There are not any tokens available on this wallet');
-    }
-
-    const supportedTokens = this.tokensOnWallet.filter((token) =>
-      this.swapInstance.supportedCoins.includes(token.symbol)
-    );
-
-    const supportedTokensWithMinBalanceSufficed = supportedTokens.filter(
-      (token) => token.valueInToken >= minAmountOfTokenToSwapInUsd
-    );
-
-    if (supportedTokensWithMinBalanceSufficed.length === 0) {
-      throw new Error(
-        `There aren't any liquidity to swap on the walllet. Min amount of token to swap = ${minAmountOfTokenToSwapInUsd}`
-      );
-    }
-
-    if (!supportedTokensWithMinBalanceSufficed.some((token) => token.symbol === 'ETH')) {
-      throw new Error(`There are not enough ETH to perform a swap.`);
-    }
-
-    return supportedTokensWithMinBalanceSufficed;
-  }
-
   private async getSwapInput(suitableTokens: TokenBalance[]) {
     const nonEthSupportedTokens = this.swapInstance.supportedCoins.filter((symbol) => symbol !== 'ETH');
 
@@ -74,8 +49,8 @@ export class SwapCalculator {
     if (suitableTokens.length === 1) {
       const ethBalance = suitableTokens[0];
 
-      const amountFrom = ethBalance.valueInToken * partOfEthToSwapMin;
-      const amountTo = ethBalance.valueInToken * partOfEthToSwapMax;
+      const amountFrom = Number(ethBalance.valueInToken) * partOfEthToSwapMin;
+      const amountTo = Number(ethBalance.valueInToken) * partOfEthToSwapMax;
 
       amountToSwap = this.getAmountToSwap(amountFrom, amountTo);
 
@@ -100,8 +75,34 @@ export class SwapCalculator {
     };
   }
 
-  private getAmountToSwap(amountFrom: number, amountTo: number) {
-    return randomFloatInRange(amountFrom, amountTo, 8);
+  private getSuitableTokensForSwap() {
+    if (!this.tokensOnWallet || !this.tokensOnWallet.length) {
+      throw new Error('There are not any tokens available on this wallet');
+    }
+
+    const supportedTokens = this.tokensOnWallet.filter((token) =>
+      this.swapInstance.supportedCoins.includes(token.symbol)
+    );
+
+    const supportedTokensWithMinBalanceSufficed = supportedTokens.filter(
+      (token) => token.valueInUsd >= minAmountOfTokenToSwapInUsd
+    );
+
+    if (supportedTokensWithMinBalanceSufficed.length === 0) {
+      throw new Error(
+        `There aren't any liquidity to swap on the walllet. Min amount of token to swap = ${minAmountOfTokenToSwapInUsd}`
+      );
+    }
+
+    if (!supportedTokensWithMinBalanceSufficed.some((token) => token.symbol === 'ETH')) {
+      throw new Error(`There are not enough ETH to perform a swap.`);
+    }
+
+    return supportedTokensWithMinBalanceSufficed;
+  }
+
+  private getAmountToSwap(amountFrom: number, amountTo: number): string {
+    return String(randomIntInRange(amountFrom, amountTo));
   }
 
   private async getTokenInstances(fromTokenSymbol: TokenSymbol, toTokenSymbol: TokenSymbol) {
@@ -112,6 +113,16 @@ export class SwapCalculator {
 
     if (!fromToken || !toToken) {
       throw new Error('Something went wrong on the getTokenInstances stage');
+    }
+
+    return this.switchContractForEthToWeth(fromToken, toToken);
+  }
+
+  private async switchContractForEthToWeth(fromToken: Token, toToken: Token) {
+    const wethInstance = (await this.tokenModule.getTokensBySymbols(['WETH']))[0];
+
+    if (toToken.symbol === 'ETH') {
+      toToken.contractAddress = wethInstance.contractAddress;
     }
 
     return { fromToken, toToken };

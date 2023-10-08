@@ -12,21 +12,21 @@ export class TierModule {
   }
 
   activityToCheckerMapper: Record<ExecutableActivity, () => boolean> = {
-    [ActivityType.OfficialBridge]: this.checkForOfficialBridge,
-    [ActivityType.Transactions]: this.checkForTransactions,
-    [ActivityType.ENS]: this.checkForEns,
-    [ActivityType.ContractAmount]: this.checkForContractAmount,
-    [ActivityType.Volume]: this.checkForVolume,
-    [ActivityType.ZkDomain]: this.checkForZkDomain,
+    [ActivityType.OfficialBridge]: this.isOfficialBridgeRequirementSatisfied.bind(this),
+    [ActivityType.Transactions]: this.isTransactionsRequirementSatisfied.bind(this),
+    [ActivityType.ENS]: this.isEnsRequirementSatisfied.bind(this),
+    [ActivityType.ContractAmount]: this.isContractsAmountRequirementSatisfied.bind(this),
+    [ActivityType.Volume]: this.isVolumeRequirementSatisfied.bind(this),
+    [ActivityType.ZkDomain]: this.isDomainRequirementSatisfied.bind(this),
   };
 
   activityToActionTypeFinderMapper: Record<ExecutableActivity, () => ActionType> = {
-    [ActivityType.Transactions]: this.findActionTypeForTransactions,
-    [ActivityType.ContractAmount]: this.findActionTypeForTransactions,
-    [ActivityType.ENS]: this.findActionTypeForTransactions,
-    [ActivityType.Volume]: this.findActionTypeForTransactions,
-    [ActivityType.ZkDomain]: this.findActionTypeForTransactions,
-    [ActivityType.OfficialBridge]: this.findActionTypeForTransactions,
+    [ActivityType.Transactions]: this.findActionTypeForTransactions.bind(this),
+    [ActivityType.ContractAmount]: this.findActionTypeForTransactions.bind(this),
+    [ActivityType.ENS]: this.findActionTypeForTransactions.bind(this),
+    [ActivityType.Volume]: this.findActionTypeForTransactions.bind(this),
+    [ActivityType.ZkDomain]: this.findActionTypeForTransactions.bind(this),
+    [ActivityType.OfficialBridge]: this.findActionTypeForTransactions.bind(this),
   };
 
   findActionForAccount(): ActionType {
@@ -44,9 +44,9 @@ export class TierModule {
     for (const activity of executableActivitiesSortedByPriority) {
       const checker = this.activityToCheckerMapper[activity];
 
-      const isActivityNeeded = checker();
+      const isRequirementSatisfied = checker();
 
-      if (isActivityNeeded) {
+      if (!isRequirementSatisfied) {
         return activity;
       }
     }
@@ -54,27 +54,27 @@ export class TierModule {
     return null;
   }
 
-  private checkForOfficialBridge() {
+  private isOfficialBridgeRequirementSatisfied() {
     return true;
   }
 
-  private checkForTransactions() {
+  private isTransactionsRequirementSatisfied() {
     return this.account.activity?.transactionCount! >= this.account.tier?.transactionCountNeeded!;
   }
 
-  private checkForEns() {
+  private isEnsRequirementSatisfied() {
     return true;
   }
 
-  private checkForContractAmount() {
+  private isContractsAmountRequirementSatisfied() {
     return true;
   }
 
-  private checkForVolume() {
+  private isVolumeRequirementSatisfied() {
     return true;
   }
 
-  private checkForZkDomain() {
+  private isDomainRequirementSatisfied() {
     return true;
   }
 
