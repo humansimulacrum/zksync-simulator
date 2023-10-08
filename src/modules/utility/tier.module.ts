@@ -51,8 +51,16 @@ export class TierModule {
     return null;
   }
 
+  private findActionTypeForTransactions() {
+    return ActionType.RandomSwap;
+  }
+
   private isOfficialBridgeRequirementSatisfied() {
-    return true;
+    if (!this.account.tier?.officialBridgeNeeded!) {
+      return true;
+    }
+
+    return this.account.activity?.officialBridge || false;
   }
 
   private isTransactionsRequirementSatisfied() {
@@ -60,18 +68,18 @@ export class TierModule {
   }
 
   private isContractsAmountRequirementSatisfied() {
-    return true;
+    return this.account.activity?.uniqueContractCount! >= this.account.tier?.uniqueSmartContracts!;
   }
 
   private isVolumeRequirementSatisfied() {
-    return true;
+    return this.account.activity?.transactionVolume! >= this.account.tier?.volume!;
   }
 
   private isDomainRequirementSatisfied() {
-    return true;
-  }
+    if (!this.account.tier?.zkSyncDomainNeeded!) {
+      return true;
+    }
 
-  private findActionTypeForTransactions() {
-    return ActionType.RandomSwap;
+    return this.account.activity?.zkSyncDomain || false;
   }
 }
