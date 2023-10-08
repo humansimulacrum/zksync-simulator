@@ -66,7 +66,7 @@ export class Transaction {
   }
 
   async estimateGas() {
-    return this.functionCall.estimateGas({ from: this.account.address, to: this.to, value: this.value });
+    return this.functionCall.estimateGas({ from: this.account.address, value: this.value });
   }
 
   async getGasPrice() {

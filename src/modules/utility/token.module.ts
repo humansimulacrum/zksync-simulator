@@ -48,9 +48,15 @@ export class TokenModule {
       return true;
     }
 
-    const approveFunctionCall = await tokenContactInstance.methods.approve(protocolContractAddress, amountToApprove);
+    const approveFunctionCall = tokenContactInstance.methods.approve(protocolContractAddress, amountToApprove);
 
-    const approveTransaction = new Transaction(this.web3, protocolContractAddress, '0', approveFunctionCall, account);
+    const approveTransaction = new Transaction(
+      this.web3,
+      protocolContractAddress,
+      amountToApprove,
+      approveFunctionCall,
+      account
+    );
     return approveTransaction.sendTransaction();
   }
 
