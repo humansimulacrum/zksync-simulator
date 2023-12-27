@@ -20,17 +20,16 @@ export class TierModule {
 
   activityToActionTypeFinderMapper: Record<ActivityType, () => ActionType> = {
     [ActivityType.Transactions]: this.findActionTypeForTransactions.bind(this),
-    [ActivityType.ContractAmount]: this.findActionTypeForTransactions.bind(this),
-    [ActivityType.Volume]: this.findActionTypeForTransactions.bind(this),
-    [ActivityType.ZkDomain]: this.findActionTypeForTransactions.bind(this),
-    [ActivityType.OfficialBridge]: this.findActionTypeForTransactions.bind(this),
+    [ActivityType.ContractAmount]: this.findActionTypeForContractAmount.bind(this),
+    [ActivityType.Volume]: this.findActionTypeForVolume.bind(this),
+    [ActivityType.ZkDomain]: this.findActionTypeForZkDomain.bind(this),
+    [ActivityType.OfficialBridge]: this.findActionTypeForOfficialBridge.bind(this),
   };
 
   findActionForAccount(): ActionType {
     const neededActivity = this.findNeededActivities();
 
     if (!neededActivity) {
-      // keeping account alive by random swap transaction
       return ActionType.RandomCheap;
     }
 
@@ -53,6 +52,22 @@ export class TierModule {
 
   private findActionTypeForTransactions() {
     return ActionType.RandomSwap;
+  }
+
+  private findActionTypeForContractAmount() {
+    return ActionType.RandomSwap;
+  }
+
+  private findActionTypeForVolume() {
+    return ActionType.RandomSwap;
+  }
+
+  private findActionTypeForZkDomain() {
+    return ActionType.ZkNS;
+  }
+
+  private findActionTypeForOfficialBridge() {
+    return ActionType.OfficialBridge;
   }
 
   private isOfficialBridgeRequirementSatisfied() {
