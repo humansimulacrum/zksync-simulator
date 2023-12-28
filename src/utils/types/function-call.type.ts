@@ -1,6 +1,6 @@
-import { TransactionConfig } from 'web3-core';
+import { TransactionRequest } from 'ethers';
 
 export type FunctionCall = {
   encodeABI: () => any;
-  estimateGas: (transactionConfig: Partial<TransactionConfig>) => string;
+  estimateGas: (transactionConfig: Partial<TransactionRequest>) => string;
 };

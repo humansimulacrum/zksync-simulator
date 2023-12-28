@@ -1,7 +1,7 @@
-import Web3 from 'web3';
 import { ActivityModule } from '../modules/utility/activity.module';
 import { connectToDatabase, importETHWallets, logWithFormatting } from '../utils/helpers';
-import { AccountRepository, ActivityRepository } from '../repositories';
+import { AccountRepository } from '../repositories';
+import { ethers } from 'ethers';
 
 const PROTOCOL_NAME = 'Account DB Import';
 
@@ -24,7 +24,7 @@ async function importAccounts() {
 }
 
 async function importAccountAndActivities(privateKey: string, activityModule: ActivityModule) {
-  const walletAddress = new Web3().eth.accounts.privateKeyToAccount(privateKey).address;
+  const walletAddress = new ethers.Wallet(privateKey).address;
   const existingAccount = await AccountRepository.findOneBy({ walletAddress });
 
   if (existingAccount) {

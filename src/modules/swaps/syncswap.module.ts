@@ -1,18 +1,15 @@
-import Web3 from 'web3';
-
-import { getAbiByRelativePath, logWithFormatting } from '../../utils/helpers';
+import { logWithFormatting } from '../../utils/helpers';
 import { ethers } from 'ethers';
 import { Swap } from './swap.module';
 import { SwapCalculator } from './swap-calculator.module';
-import { FunctionCall, TokenSymbol } from '../../utils/types';
+import { FunctionCall } from '../../utils/types';
 import { GenerateFunctionCallInput } from '../../utils/interfaces';
 import { Token } from '../../entity';
 import { ActionType } from '../../utils/enums/action-type.enum';
+import { toChecksumAddress } from 'web3-utils';
 
 // those contracts were taken from https://syncswap.gitbook.io/api-documentation/resources/smart-contract
-export const SYNCSWAP_CLASSIC_POOL_FACTORY_ADDR = Web3.utils.toChecksumAddress(
-  '0xf2dad89f2788a8cd54625c60b55cd3d2d0aca7cb'
-);
+export const SYNCSWAP_CLASSIC_POOL_FACTORY_ADDR = toChecksumAddress('0xf2dad89f2788a8cd54625c60b55cd3d2d0aca7cb');
 export class SyncSwap extends Swap {
   constructor(privateKey: string) {
     super(privateKey, ActionType.SyncSwap);
@@ -22,7 +19,7 @@ export class SyncSwap extends Swap {
     const { fromToken, toToken, amountWithPrecision, minOutAmountWithPrecision, swapDeadline } = functionCallInput;
     const poolAddress = await this.getPoolAddress(fromToken, toToken);
 
-    const encoder = new ethers.utils.AbiCoder();
+    const encoder = new ethers.AbiCoder();
 
     // swapData => [tokenIn, addressOfTheRecipient, withdrawMode]
     // https://discord.com/channels/953301763811840000/1083613544832041090/1083623247930724393
@@ -35,7 +32,7 @@ export class SyncSwap extends Swap {
       {
         pool: poolAddress,
         data: swapData,
-        callback: ethers.constants.AddressZero,
+        callback: ethers.ZeroAddress,
         callbackData: '0x',
       },
     ];
@@ -43,29 +40,29 @@ export class SyncSwap extends Swap {
     const paths = [
       {
         steps: steps,
-        tokenIn: fromToken.symbol === 'ETH' ? ethers.constants.AddressZero : fromToken.contractAddress,
+        tokenIn: fromToken.symbol === 'ETH' ? ethers.ZeroAddress : fromToken.contractAddress,
         amountIn: amountWithPrecision,
       },
     ];
 
     const routerAbi = getAbiByRelativePath('../abi/syncSwapRouter.json');
-    const routerContractInstance = new this.web3.eth.Contract(routerAbi, this.protocolRouterContract);
+    const routerContractInstance = new ethers.Contract(this.protocolRouterContract, routerAbi, this.provider);
 
-    return routerContractInstance.methods.swap(paths, minOutAmountWithPrecision.toString(), swapDeadline);
+    const swapMethod = await routerContractInstance.swap(paths, minOutAmountWithPrecision.toString(), swapDeadline);
+    return swapMethod;
   }
 
   private async getPoolAddress(fromToken: Token, toToken: Token) {
     const syncSwapClassicPoolFactoryAbi = getAbiByRelativePath('../abi/syncSwapClassicPoolFactory.json');
-    const classicPoolFactory = new this.web3.eth.Contract(
+    const classicPoolFactory = new ethers.Contract(
       syncSwapClassicPoolFactoryAbi,
-      SYNCSWAP_CLASSIC_POOL_FACTORY_ADDR
+      SYNCSWAP_CLASSIC_POOL_FACTORY_ADDR,
+      this.provider
     );
 
-    const poolAddress = await classicPoolFactory.methods
-      .getPool(fromToken.contractAddress, toToken.contractAddress)
-      .call();
+    const poolAddress = await classicPoolFactory.getPool(fromToken.contractAddress, toToken.contractAddress);
 
-    if (poolAddress === ethers.constants.AddressZero) {
+    if (poolAddress === ethers.ZeroAddress) {
       logWithFormatting(
         this.protocolName,
         `${this.walletAddress}: There aren't any pools available for those tokens ${fromToken.symbol} => ${toToken.symbol}`

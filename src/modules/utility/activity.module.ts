@@ -1,6 +1,5 @@
-import Web3 from 'web3';
 import { choose, getTokenPriceCryptoCompare, importProxies, logWithFormatting } from '../../utils/helpers';
-import { fetchData, postData } from '../../utils/helpers/fetch.helper';
+import { fetchData } from '../../utils/helpers/fetch.helper';
 import { TransactionDataItem } from '../../utils/interfaces/transaction-item.interface';
 import { Activity } from '../../entity/activity.entity';
 import { ActivityRepository } from '../../repositories/activity.repository';
@@ -13,27 +12,29 @@ import { TransferDataItem } from '../../utils/interfaces/transfer-item.interface
 import { isSelfTransaction } from '../../utils/helpers/address.helper';
 import { TokenModule } from './token.module';
 import { TokenMap } from '../../utils/types/token-map.type';
+import { ethers.providers.JsonRpcProvider } from 'ethers';
+import { hexToNumber } from 'web3-utils';
 
 export class ActivityModule {
   moduleName = 'ActivityModule';
   proxies: string[];
-  web3: Web3;
+  provider: ethers.providers.JsonRpcProvider;
 
   tokenModule: TokenModule;
 
-  private constructor(proxies: string[], web3: Web3, tokenModule: TokenModule) {
+  private constructor(proxies: string[], provider: ethers.providers.JsonRpcProvider, tokenModule: TokenModule) {
     this.proxies = proxies;
-    this.web3 = web3;
+    this.provider = provider;
     this.tokenModule = tokenModule;
   }
 
   static async create(): Promise<ActivityModule> {
     const proxies = await importProxies();
-    const web3 = new Web3(ERA.rpc);
+    const provider = new ethers.providers.JsonRpcProvider(ERA.rpc);
 
     const tokenModule = await TokenModule.create();
 
-    return new ActivityModule(proxies, web3, tokenModule);
+    return new ActivityModule(proxies, provider, tokenModule);
   }
 
   async getActivity(walletAddress: string): Promise<Partial<Activity>> {
@@ -90,13 +91,13 @@ export class ActivityModule {
   }
 
   private async getTransactionCount(walletAddr: string) {
-    const transactionCount = await this.web3.eth.getTransactionCount(walletAddr);
+    const transactionCount = await this.provider.getTransactionCount(walletAddr);
     return transactionCount;
   }
 
   private async getGasSpentInUsd(transactions: TransactionDataItem[]) {
     const sumInWei = transactions.reduce((acc: number, transaction) => {
-      const fee = Number(Web3.utils.hexToNumber(transaction.fee));
+      const fee = Number(hexToNumber(transaction.fee));
       return acc + fee;
     }, 0);
 

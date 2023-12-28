@@ -1,4 +1,3 @@
-import Web3 from 'web3';
 import { ERA, ETH } from '../../utils/const/chains.const';
 import {
   accountPicker,
@@ -20,21 +19,24 @@ import { ZkSyncBridge } from '../bridges/zksync-bridge.module';
 import { Velocore } from '../swaps/velocore.module';
 import { ZkSyncNameService } from '../name-services/zksync-name.module';
 import { TierModule } from './tier.module';
+import { ethers.providers.JsonRpcProvider } from 'ethers';
+import { TransactionModule } from './transaction.module';
+import { fromWei } from 'web3-utils';
 
 export class Executor {
-  web3: Web3;
-  mainnetWeb3: Web3;
+  provider: ethers.providers.JsonRpcProvider;
+  mainnetProvider: ethers.providers.JsonRpcProvider;
   accounts: Account[];
 
-  constructor(web3: Web3, mainnetWeb3: Web3, accounts: Account[]) {
-    this.web3 = web3;
-    this.mainnetWeb3 = mainnetWeb3;
+  constructor(provider: ethers.providers.JsonRpcProvider, mainnetProvider: ethers.providers.JsonRpcProvider, accounts: Account[]) {
+    this.provider = provider;
+    this.mainnetProvider = mainnetProvider;
     this.accounts = accounts;
   }
 
   static async create() {
-    const web3 = new Web3(ERA.rpc);
-    const mainnetWeb3 = new Web3(ETH.rpc);
+    const web3 = new ethers.providers.JsonRpcProvider(ERA.rpc);
+    const mainnetWeb3 = new ethers.providers.JsonRpcProvider(ETH.rpc);
     const accounts = await accountPicker();
 
     return new Executor(web3, mainnetWeb3, accounts);
@@ -98,8 +100,8 @@ export class Executor {
   }
 
   private isGasOkay = async (account: Account) => {
-    const gasPrice = await this.mainnetWeb3.eth.getGasPrice();
-    const currentGas = Number(Web3.utils.fromWei(gasPrice, 'Gwei'));
+    const gasPrice = await TransactionModule.getGasPrice(this.mainnetProvider);
+    const currentGas = Number(fromWei(gasPrice, 'Gwei'));
 
     const isGasHigher = currentGas <= maxGwei;
 

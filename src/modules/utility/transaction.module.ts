@@ -1,59 +1,54 @@
-import Web3 from 'web3';
-import { TransactionConfig, Account } from 'web3-core';
+import { BigNumberish, ethers } from 'ethers';
+import { ethers.providers.JsonRpcProvider, TransactionRequest } from 'ethers/providers';
 import { FunctionCall } from '../../utils/types/function-call.type';
 import { ERA } from '../../utils/const/chains.const';
 
-export class Transaction {
-  web3: Web3;
-  account: Account;
+export class TransactionModule {
+  private readonly provider: ethers.providers.JsonRpcProvider;
+  private readonly wallet: ethers.Wallet;
 
-  to: string;
-  value: string;
+  private readonly to: string;
+  private readonly value: BigNumberish;
 
-  functionCall: FunctionCall;
-  transactionConfig?: Partial<TransactionConfig>;
+  private readonly functionCall: FunctionCall;
+  private readonly transactionConfig?: Partial<TransactionRequest>;
 
   constructor(
-    web3: Web3,
+    provider: ethers.providers.JsonRpcProvider,
     to: string,
     value: string,
     functionCall: FunctionCall,
-    account: Account,
-    transactionConfig?: Partial<TransactionConfig>
+    wallet: ethers.Wallet,
+    transactionConfig?: Partial<TransactionRequest>
   ) {
-    this.web3 = web3;
+    this.provider = provider;
     this.to = to;
+    this.value = ethers.parseEther(value);
     this.functionCall = functionCall;
-    this.account = account;
-    this.value = value;
+    this.wallet = wallet;
     this.transactionConfig = transactionConfig;
   }
 
   async sendTransaction(): Promise<string> {
     const tx = await this.formTransactionConfig();
-    const signedTx = await this.account.signTransaction(tx);
 
-    if (!signedTx || !signedTx.rawTransaction) {
-      throw new Error('Transaction signature failed.');
-    }
-
-    const transactionResult = await this.web3.eth.sendSignedTransaction(signedTx.rawTransaction);
-    return transactionResult.transactionHash;
+    const transactionResult = await this.wallet.sendTransaction(tx);
+    return transactionResult.hash;
   }
 
-  async formTransactionConfig() {
+  async formTransactionConfig(): Promise<TransactionRequest> {
     const nonce = await this.getTransactionCount();
-    const gas = await this.estimateGas();
-    const gasPrice = await this.getGasPrice();
+    const gasLimit = await this.estimateGas();
+    const gasPrice = await TransactionModule.getGasPrice(this.provider);
 
-    const tx: TransactionConfig = {
-      from: this.account.address,
+    const tx: TransactionRequest = {
+      from: this.wallet.address,
       to: this.to,
       data: this.functionCall.encodeABI(),
       chainId: ERA.chainId,
       nonce,
       value: this.value,
-      gas,
+      gasLimit,
       gasPrice,
       ...this.transactionConfig,
     };
@@ -61,15 +56,21 @@ export class Transaction {
     return tx;
   }
 
-  async getTransactionCount() {
-    return this.web3.eth.getTransactionCount(this.account.address);
+  async getTransactionCount(): Promise<number> {
+    return this.provider.getTransactionCount(this.wallet.address);
   }
 
-  async estimateGas() {
-    return this.functionCall.estimateGas({ from: this.account.address, value: this.value });
+  async estimateGas(): Promise<ethers.BigNumberish> {
+    return this.functionCall.estimateGas({ from: this.wallet.address, value: this.value });
   }
 
-  async getGasPrice() {
-    return this.web3.eth.getGasPrice();
+  static async getGasPrice(provider: ethers.providers.JsonRpcProvider): Promise<ethers.BigNumberish> {
+    const gasPrice = (await provider.getFeeData()).gasPrice;
+
+    if (!gasPrice) {
+      throw new Error('Gas price cannot be retrieved.');
+    }
+
+    return gasPrice;
   }
 }

@@ -1,10 +1,7 @@
-import Web3 from 'web3';
-import { getAbiByRelativePath, getTokenPriceCryptoCompare, importProxies } from '../../utils/helpers';
-import { Contract } from 'web3-eth-contract';
-import { Account } from 'web3-core';
+import { getTokenPriceCryptoCompare, importProxies } from '../../utils/helpers';
 
 import { ERA } from '../../utils/const/chains.const';
-import { Transaction } from './transaction.module';
+import { TransactionModule } from './transaction.module';
 import { TOKENS_SUPPORTED } from '../../utils/const/token-contracts.const';
 import { TokenRepository } from '../../repositories/token.repository';
 import { Token } from '../../entity/token.entity';
@@ -12,46 +9,52 @@ import { TokenSymbol } from '../../utils/types/token-symbol.type';
 import { TokenBalance } from '../../utils/interfaces/balance.interface';
 import { fromWei, toWei } from '../../utils/helpers/wei.helper';
 import { TokenMap } from '../../utils/types/token-map.type';
+import { BigNumberish, Contract, ethers.providers.JsonRpcProvider } from 'ethers';
+import { Wallet } from 'zksync-web3';
 
 export class TokenModule {
   moduleName = 'TokenModule';
 
   proxies: string[];
-  web3: Web3;
+  provider: ethers.providers.JsonRpcProvider;
   erc20Abi: any;
 
-  private constructor(proxies: string[], erc20Abi: any, web3: Web3) {
+  private constructor(proxies: string[], erc20Abi: any, provider: ethers.providers.JsonRpcProvider) {
     this.proxies = proxies;
-    this.web3 = web3;
+    this.provider = provider;
     this.erc20Abi = erc20Abi;
   }
 
   static async create(rpcUrl?: string): Promise<TokenModule> {
     const proxies = await importProxies();
-    const web3 = new Web3(rpcUrl ? rpcUrl : ERA.rpc);
+    const provider = new ethers.providers.JsonRpcProvider(rpcUrl ? rpcUrl : ERA.rpc);
     const erc20Abi = getAbiByRelativePath('../abi/erc20.json');
 
-    return new TokenModule(proxies, erc20Abi, web3);
+    return new TokenModule(proxies, erc20Abi, provider);
   }
 
   async approveToken(
     amountToApprove: string,
-    account: Account,
+    wallet: Wallet,
     tokenContractAddress: string,
     protocolContractAddress: string
   ) {
     const tokenContactInstance = this.getTokenContractInstanceByAddress(tokenContractAddress);
-    const allowanceAmount = await tokenContactInstance.methods
-      .allowance(account.address, protocolContractAddress)
-      .call();
+    const allowanceAmount = await tokenContactInstance.allowance(account.address, protocolContractAddress);
 
     if (allowanceAmount > amountToApprove) {
       return true;
     }
 
-    const approveFunctionCall = tokenContactInstance.methods.approve(protocolContractAddress, amountToApprove);
+    const approveFunctionCall = tokenContactInstance.approve(protocolContractAddress, amountToApprove);
 
-    const approveTransaction = new Transaction(this.web3, tokenContractAddress, '0', approveFunctionCall, account);
+    const approveTransaction = new TransactionModule(
+      this.provider3,
+      tokenContractAddress,
+      '0',
+      approveFunctionCall,
+      account
+    );
     return approveTransaction.sendTransaction();
   }
 
@@ -106,13 +109,13 @@ export class TokenModule {
     return TokenModule.getReadableAmountWithToken(balanceInWei, token);
   }
 
-  async getBalanceByTokenWei(token: Token, addressToCheckOn: string): Promise<string> {
+  async getBalanceByTokenWei(token: Token, addressToCheckOn: string): Promise<BigNumberish> {
     if (token.symbol === 'ETH') {
       return this.getBalanceNative(addressToCheckOn);
     }
 
     const fromTokenContractInstance = await this.getTokenContractInstanceByAddress(token.contractAddress);
-    const balanceInWei = await fromTokenContractInstance.methods.balanceOf(addressToCheckOn).call();
+    const balanceInWei = await fromTokenContractInstance.balanceOf(addressToCheckOn);
 
     return balanceInWei;
   }
@@ -136,16 +139,16 @@ export class TokenModule {
 
   private async getDecimalsFromContractAddress(tokenContactAddress: string) {
     const tokenContractInstance = await this.getTokenContractInstanceByAddress(tokenContactAddress);
-    const decimals = await tokenContractInstance.methods.decimals().call();
+    const decimals = await tokenContractInstance.decimals();
 
     return decimals;
   }
 
   private getTokenContractInstanceByAddress(address: string): Contract {
-    return new this.web3.eth.Contract(this.erc20Abi, address);
+    return new Contract(this.erc20Abi, address);
   }
 
-  private async getBalanceNative(walletAddress: string): Promise<string> {
-    return this.web3.eth.getBalance(walletAddress);
+  private async getBalanceNative(walletAddress: string): Promise<BigNumberish> {
+    return this.provider.getBalance(walletAddress);
   }
 }
