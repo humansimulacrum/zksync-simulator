@@ -1,7 +1,7 @@
-export const maxGwei = 15;
+export const maxGwei = 18;
 export const shuffleWallets = true;
 
-export const sleepOnHighGas = 60000;
+export const sleepOnHighGas = 60;
 export const sleepBetweenWalletsFrom = 300;
 export const sleepBetweenWalletsTo = 600;
 
@@ -15,7 +15,7 @@ export const logFilePath = 'logs.txt';
 // picker options
 
 export const daysBetweenTransactionsOnAccount = 30; // one transaction each week, when activity is kept
-export const accountsInBatch = 1;
+export const accountsInBatch = 4;
 
 // swap config
 export const partOfEthToSwapMin = 0.4; // 40% of current eth balance

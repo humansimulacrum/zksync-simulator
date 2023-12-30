@@ -1,4 +1,6 @@
 import Web3 from 'web3';
+import { difference, pick, random } from 'lodash';
+
 import { ERA, ETH } from '../../utils/const/chains.const';
 import {
   accountPicker,
@@ -20,24 +22,34 @@ import { ZkSyncBridge } from '../bridges/zksync-bridge.module';
 import { Velocore } from '../swaps/velocore.module';
 import { ZkSyncNameService } from '../name-services/zksync-name.module';
 import { TierModule } from './tier.module';
+import { ActivityModule } from './activity.module';
+import {
+  CheapDoableActions,
+  allCheapContracts,
+  contractToCheapActionTypeMapper,
+} from '../../utils/const/activity-contracts.const';
 
 export class Executor {
   web3: Web3;
   mainnetWeb3: Web3;
   accounts: Account[];
+  activityModule: ActivityModule;
 
-  constructor(web3: Web3, mainnetWeb3: Web3, accounts: Account[]) {
+  constructor(web3: Web3, mainnetWeb3: Web3, accounts: Account[], activityModule: ActivityModule) {
     this.web3 = web3;
     this.mainnetWeb3 = mainnetWeb3;
     this.accounts = accounts;
+    this.activityModule = activityModule;
   }
 
   static async create() {
     const web3 = new Web3(ERA.rpc);
     const mainnetWeb3 = new Web3(ETH.rpc);
-    const accounts = await accountPicker();
 
-    return new Executor(web3, mainnetWeb3, accounts);
+    const accounts = await accountPicker();
+    const activityModule = await ActivityModule.create();
+
+    return new Executor(web3, mainnetWeb3, accounts, activityModule);
   }
 
   async executeActionsOnBatch() {
@@ -64,6 +76,8 @@ export class Executor {
 
     if (actionType === ActionType.RandomCheap) {
       executableModule = this.pickRandomCheapActivity(account);
+    } else if (actionType === ActionType.NewContract) {
+      executableModule = await this.pickNewContract(account);
     } else {
       executableModule = this.actionTypeToExecutableMapper[actionType];
     }
@@ -74,7 +88,6 @@ export class Executor {
 
   actionTypeToExecutableMapper = {
     [ActionType.RandomSwap]: this.pickRandomSwap(),
-    [ActionType.RandomCheap]: this.pickRandomSwap(),
     [ActionType.Dmail]: Dmail,
     [ActionType.OfficialBridge]: ZkSyncBridge,
     [ActionType.Mute]: MuteSwap,
@@ -83,6 +96,21 @@ export class Executor {
     [ActionType.Velocore]: Velocore,
     [ActionType.ZkNS]: ZkSyncNameService,
   };
+
+  private async pickNewContract(account: Account) {
+    const contractsPerAccount = await this.activityModule.getUsedContracts(account.id);
+    const availableContracts = difference(allCheapContracts, contractsPerAccount);
+
+    if (!availableContracts.length) {
+      return this.actionTypeToExecutableMapper[ActionType.RandomSwap];
+    }
+
+    const contractAddress = choose(availableContracts);
+    const actionType: CheapDoableActions = contractToCheapActionTypeMapper[contractAddress];
+
+    const executableModule = this.actionTypeToExecutableMapper[actionType];
+    return executableModule;
+  }
 
   private pickRandomSwap() {
     const SWAPS = [SpaceFiSwap, MuteSwap, SyncSwap, Velocore];

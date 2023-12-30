@@ -19,4 +19,14 @@ export const ActivityRepository = AppDataSource.getRepository(Activity).extend({
     await this.update({ id }, payload);
     return;
   },
+
+  async getUniqueContractsForAccount(accountId: string): Promise<string[]> {
+    const activity = await this.findOne({ where: { account: { id: accountId } } });
+
+    if (!activity) {
+      return [];
+    }
+
+    return JSON.parse(activity.uniqueContractArray);
+  },
 });

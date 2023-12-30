@@ -6,10 +6,11 @@ import { SwapCalculator } from './swap-calculator.module';
 import { TokenModule } from '../utility/token.module';
 import { Transaction } from '../utility/transaction.module';
 import { Token } from '../../entity';
-import { SWAP_CONTRACT_ADDRESSES, SWAP_SUPPORTED_COINS } from '../../utils/const/swap.const';
+import { SWAP_CONTRACT_ADDRESSES, SWAP_SUPPORTED_COINS, SwapActionTypes } from '../../utils/const/swap.const';
 import { ExecutableModule, ExecuteOutput, ModuleOutput } from '../../utils/interfaces/execute.interface';
 import { GenerateFunctionCallInput, SwapInput } from '../../utils/interfaces';
 import { slippage } from '../../utils/const/config.const';
+import { ActionType } from '../../utils/enums/action-type.enum';
 
 export abstract class Swap extends ExecutableModule {
   protocolName: string;
@@ -22,12 +23,12 @@ export abstract class Swap extends ExecutableModule {
   account: Account;
   walletAddress: string;
 
-  constructor(privateKey: string, protocolName: string) {
+  constructor(privateKey: string, actionType: SwapActionTypes) {
     super();
 
-    this.protocolName = protocolName;
-    this.protocolRouterContract = SWAP_CONTRACT_ADDRESSES[protocolName];
-    this.supportedCoins = SWAP_SUPPORTED_COINS[protocolName];
+    this.protocolName = actionType;
+    this.protocolRouterContract = SWAP_CONTRACT_ADDRESSES[actionType];
+    this.supportedCoins = SWAP_SUPPORTED_COINS[actionType];
 
     this.chain = ERA;
     this.web3 = new Web3(this.chain.rpc);

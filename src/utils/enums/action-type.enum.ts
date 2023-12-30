@@ -8,4 +8,5 @@ export enum ActionType {
   'SyncSwap' = 'SyncSwap',
   'RandomSwap' = 'RandomSwap',
   'RandomCheap' = 'RandomCheap',
+  'NewContract' = 'NewContract',
 }

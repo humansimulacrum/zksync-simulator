@@ -55,7 +55,7 @@ export class TierModule {
   }
 
   private findActionTypeForContractAmount() {
-    return ActionType.RandomSwap;
+    return ActionType.NewContract;
   }
 
   private findActionTypeForVolume() {

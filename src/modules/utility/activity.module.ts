@@ -89,6 +89,11 @@ export class ActivityModule {
     await AccountRepository.updateById(accountId, { activity: { id: activityId } });
   }
 
+  async getUsedContracts(accountId: string) {
+    const usedContracts = await ActivityRepository.getUniqueContractsForAccount(accountId);
+    return usedContracts;
+  }
+
   private async getTransactionCount(walletAddr: string) {
     const transactionCount = await this.web3.eth.getTransactionCount(walletAddr);
     return transactionCount;
