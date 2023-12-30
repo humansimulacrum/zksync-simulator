@@ -1,14 +1,15 @@
+import Web3 from 'web3';
+import { Account } from 'web3-core';
 import { FunctionCall, TokenSymbol } from '../../utils/types';
 import { Chain, ERA } from '../../utils/const/chains.const';
 import { SwapCalculator } from './swap-calculator.module';
 import { TokenModule } from '../utility/token.module';
-import { TransactionModule } from '../utility/transaction.module';
+import { Transaction } from '../utility/transaction.module';
 import { Token } from '../../entity';
 import { SWAP_CONTRACT_ADDRESSES, SWAP_SUPPORTED_COINS } from '../../utils/const/swap.const';
 import { ExecutableModule, ExecuteOutput, ModuleOutput } from '../../utils/interfaces/execute.interface';
 import { GenerateFunctionCallInput, SwapInput } from '../../utils/interfaces';
 import { slippage } from '../../utils/const/config.const';
-import { Provider, Wallet, ethers } from 'ethers';
 
 export abstract class Swap extends ExecutableModule {
   protocolName: string;
@@ -16,9 +17,9 @@ export abstract class Swap extends ExecutableModule {
 
   supportedCoins: TokenSymbol[];
   chain: Chain;
-  provider: Provider;
+  web3: Web3;
 
-  account: Wallet;
+  account: Account;
   walletAddress: string;
 
   constructor(privateKey: string, protocolName: string) {
@@ -29,9 +30,9 @@ export abstract class Swap extends ExecutableModule {
     this.supportedCoins = SWAP_SUPPORTED_COINS[protocolName];
 
     this.chain = ERA;
-    this.provider = new ethers.providers.JsonRpcProvider(this.chain.rpc);
-    this.account = new ethers.Wallet(privateKey);
+    this.web3 = new Web3(this.chain.rpc);
 
+    this.account = this.web3.eth.accounts.privateKeyToAccount(privateKey);
     this.walletAddress = this.account.address;
   }
 
@@ -102,8 +103,8 @@ export abstract class Swap extends ExecutableModule {
 
   async sendSwapTransaction(swapFunctionCall: FunctionCall, fromTokenSymbol: string, amountWithPrecision: string) {
     const value = fromTokenSymbol === 'ETH' ? amountWithPrecision : '0';
-    const swapTransaction = new TransactionModule(
-      this.provider,
+    const swapTransaction = new Transaction(
+      this.web3,
       this.protocolRouterContract,
       value,
       swapFunctionCall,
@@ -113,8 +114,7 @@ export abstract class Swap extends ExecutableModule {
   }
 
   getSwapDeadline = async () => {
-    const block = await this.provider.getBlock('latest');
-    const currentTimestamp = block?.timestamp;
+    const currentTimestamp = (await this.web3.eth.getBlock('latest')).timestamp;
     return parseInt(String(currentTimestamp)) + 1200;
   };
 

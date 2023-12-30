@@ -4,7 +4,7 @@ import { ethers } from 'ethers';
 
 export async function sleepBetweenWallets() {
   const sleepDuration = randomIntInRange(sleepBetweenWalletsFrom, sleepBetweenWalletsTo);
-  await sleepLogWrapper(sleepDuration * 1000, ethers.ZeroAddress, 'between wallets.');
+  await sleepLogWrapper(sleepDuration * 1000, ethers.constants.AddressZero, 'between wallets.');
 }
 
 export async function sleep(millis: number) {

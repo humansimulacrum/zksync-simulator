@@ -1,38 +1,39 @@
-import { Contract, ethers, Wallet } from 'ethers';
-import { toChecksumAddress } from 'web3-utils';
+import Web3 from 'web3';
+import { Account } from 'web3-core';
+import Contract from 'web3-eth-contract';
+import { AbiItem } from 'web3-utils';
 
 import { Chain, ERA } from '../../utils/const/chains.const';
-import { generateName } from '../../utils/helpers';
+import { generateName, getAbiByRelativePath } from '../../utils/helpers';
 import { toWei } from '../../utils/helpers/wei.helper';
-import { TransactionModule } from '../utility/transaction.module';
+import { Transaction } from '../utility/transaction.module';
 import { ExecutableModule, ExecuteOutput, ModuleOutput } from '../../utils/interfaces/execute.interface';
 import { ActionType } from '../../utils/enums/action-type.enum';
-import { ERA_NAME_SERVICE_ABI } from '../../utils/abi/eraNameService';
 
-const ZKSYNC_NAME_CONTRACT = toChecksumAddress('0x935442AF47F3dc1c11F006D551E13769F12eab13');
+const ZKSYNC_NAME_CONTRACT = Web3.utils.toChecksumAddress('0x935442AF47F3dc1c11F006D551E13769F12eab13');
 
 export class ZkSyncNameService implements ExecutableModule {
   protocolName: string;
-  provider: ethers.providers.JsonRpcProvider;
+  web3: Web3;
   chain: Chain;
 
   privateKey: string;
-  wallet: Wallet;
+  account: Account;
   walletAddress: string;
 
   contractAddr: string;
-  contractAbi: typeof ERA_NAME_SERVICE_ABI;
+  contractAbi: AbiItem[];
   contract: Contract;
 
   constructor(privateKey?: string, walletAddress?: string) {
     this.protocolName = ActionType.ZkNS;
 
     this.chain = ERA;
-    this.provider = new ethers.providers.JsonRpcProvider(this.chain.rpc);
+    this.web3 = new Web3(this.chain.rpc);
 
     if (privateKey) {
-      this.wallet = new Wallet(privateKey, this.provider);
-      this.walletAddress = this.wallet.address;
+      this.account = this.web3.eth.accounts.privateKeyToAccount(privateKey);
+      this.walletAddress = this.account.address;
     }
 
     if (walletAddress) {
@@ -40,9 +41,9 @@ export class ZkSyncNameService implements ExecutableModule {
     }
 
     this.contractAddr = ZKSYNC_NAME_CONTRACT;
-    this.contractAbi = ERA_NAME_SERVICE_ABI;
+    this.contractAbi = getAbiByRelativePath('../abi/eraNameService.json');
 
-    this.contract = new Contract(this.contractAddr, this.contractAbi, this.provider);
+    this.contract = new this.web3.eth.Contract(this.contractAbi, this.contractAddr);
   }
 
   async execute(): Promise<ExecuteOutput> {
@@ -66,9 +67,10 @@ export class ZkSyncNameService implements ExecutableModule {
     const mintPrice = 0.0026;
     const mintPriceWei = toWei(mintPrice);
 
-    const tx = await this.contract.register(name, { value: mintPriceWei });
+    const mintFunctionCall = this.contract.methods.register(name);
 
-    const transactionHash = tx.hash;
+    const transaction = new Transaction(this.web3, this.contractAddr, mintPriceWei, mintFunctionCall, this.account);
+    const transactionHash = await transaction.sendTransaction();
 
     return { transactionHash, message: `Minted ZkSync Domain Name ${name}.zk` };
   }
@@ -88,10 +90,10 @@ export class ZkSyncNameService implements ExecutableModule {
   }
 
   checkEligibility(name: string) {
-    return this.contract.tokenAddressandID(name);
+    return this.contract.methods.tokenAddressandID(name).call();
   }
 
   isAlreadyMinted() {
-    return this.contract.balanceOf(this.walletAddress);
+    return this.contract.methods.balanceOf(this.walletAddress).call();
   }
 }

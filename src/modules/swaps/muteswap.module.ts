@@ -1,11 +1,10 @@
+import { getAbiByRelativePath } from '../../utils/helpers';
 import { Swap } from './swap.module';
 import { SwapCalculator } from './swap-calculator.module';
 import { GenerateFunctionCallInput, SwapInput } from '../../utils/interfaces/swap-input.interface';
 import { Token } from '../../entity/token.entity';
 import { FunctionCall } from '../../utils/types/function-call.type';
 import { ActionType } from '../../utils/enums/action-type.enum';
-import { Contract } from 'ethers';
-import { MUTE_ROUTER_ABI } from '../../utils/abi/muteRouter';
 
 export class MuteSwap extends Swap {
   constructor(privateKey: string) {
@@ -18,10 +17,11 @@ export class MuteSwap extends Swap {
     const path = [fromToken.contractAddress, toToken.contractAddress];
     const stablesInThePath = this.areStablesInThePath(fromToken, toToken);
 
-    const muteRouter = new Contract(this.protocolRouterContract, MUTE_ROUTER_ABI);
+    const muteRouterAbi = getAbiByRelativePath('../abi/muteRouter.json');
+    const muteRouter = new this.web3.eth.Contract(muteRouterAbi, this.protocolRouterContract);
 
     if (fromToken.symbol === 'ETH') {
-      return muteRouter.swapExactETHForTokensSupportingFeeOnTransferTokens(
+      return muteRouter.methods.swapExactETHForTokensSupportingFeeOnTransferTokens(
         minOutAmountWithPrecision,
         path,
         this.walletAddress,
@@ -31,7 +31,7 @@ export class MuteSwap extends Swap {
     }
 
     if (toToken.symbol === 'ETH') {
-      return muteRouter.swapExactTokensForETHSupportingFeeOnTransferTokens(
+      return muteRouter.methods.swapExactTokensForETHSupportingFeeOnTransferTokens(
         amountWithPrecision,
         minOutAmountWithPrecision,
         path,
@@ -41,7 +41,7 @@ export class MuteSwap extends Swap {
       );
     }
 
-    return muteRouter.swapExactTokensForTokensSupportingFeeOnTransferTokens(
+    return muteRouter.methods.swapExactTokensForTokensSupportingFeeOnTransferTokens(
       amountWithPrecision,
       minOutAmountWithPrecision,
       path,
