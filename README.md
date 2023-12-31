@@ -69,7 +69,7 @@ In `tier.const.ts` (in the `tiers` variable), you can view/set different require
 - ZkSync Name Service - Domain Name
 - Dmailer - Cheap Transactions
 - MuteSwap - Swap
-- PancakeSwap - Swap
+- PancakeSwap - Swap (temporarily disabled, need to fix WETH unwrapping)
 - SpaceFi - Swap
 - SyncSwap - Swap
 - Velocore - Swap

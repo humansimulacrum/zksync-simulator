@@ -28,7 +28,7 @@ import {
   allCheapContracts,
   contractToCheapActionTypeMapper,
 } from '../../utils/const/activity-contracts.const';
-import { PancakeSwap } from '../swaps/pancake.module';
+// import { PancakeSwap } from '../swaps/pancake.module';
 
 export class Executor {
   web3: Web3;
@@ -97,7 +97,7 @@ export class Executor {
     [ActionType.SyncSwap]: SyncSwap,
     [ActionType.Velocore]: Velocore,
     [ActionType.ZkNS]: ZkSyncNameService,
-    [ActionType.PancakeSwap]: PancakeSwap,
+    // [ActionType.PancakeSwap]: PancakeSwap,
   };
 
   private async pickNewContract(account: Account) {
@@ -116,7 +116,8 @@ export class Executor {
   }
 
   private pickRandomSwap() {
-    const SWAPS = [SpaceFiSwap, MuteSwap, SyncSwap, Velocore, PancakeSwap];
+    // const SWAPS = [SpaceFiSwap, MuteSwap, SyncSwap, Velocore, PancakeSwap];
+    const SWAPS = [SpaceFiSwap, MuteSwap, SyncSwap, Velocore];
     return choose(SWAPS);
   }
 
