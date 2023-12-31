@@ -71,22 +71,20 @@ export class Executor {
   }
 
   private async getExecutableForAccount(account: Account): Promise<ExecutableModule> {
-    const executableTest = this.actionTypeToExecutableMapper[ActionType.PancakeSwap];
+    const tierModule = new TierModule(account);
+    const actionType = tierModule.findActionForAccount();
 
-    // const tierModule = new TierModule(account);
-    // const actionType = tierModule.findActionForAccount();
+    let executableModule;
 
-    // let executableModule;
+    if (actionType === ActionType.RandomCheap) {
+      executableModule = this.pickRandomCheapActivity(account);
+    } else if (actionType === ActionType.NewContract) {
+      executableModule = await this.pickNewContract(account);
+    } else {
+      executableModule = this.actionTypeToExecutableMapper[actionType];
+    }
 
-    // if (actionType === ActionType.RandomCheap) {
-    //   executableModule = this.pickRandomCheapActivity(account);
-    // } else if (actionType === ActionType.NewContract) {
-    //   executableModule = await this.pickNewContract(account);
-    // } else {
-    //   executableModule = this.actionTypeToExecutableMapper[actionType];
-    // }
-
-    const initializedExecutable = new executableTest(account.privateKey);
+    const initializedExecutable = new executableModule(account.privateKey);
     return initializedExecutable;
   }
 
@@ -118,7 +116,7 @@ export class Executor {
   }
 
   private pickRandomSwap() {
-    const SWAPS = [SpaceFiSwap, MuteSwap, SyncSwap, Velocore];
+    const SWAPS = [SpaceFiSwap, MuteSwap, SyncSwap, Velocore, PancakeSwap];
     return choose(SWAPS);
   }
 
