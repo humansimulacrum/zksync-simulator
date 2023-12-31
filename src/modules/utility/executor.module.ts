@@ -28,6 +28,7 @@ import {
   allCheapContracts,
   contractToCheapActionTypeMapper,
 } from '../../utils/const/activity-contracts.const';
+import { PancakeSwap } from '../swaps/pancake.module';
 
 export class Executor {
   web3: Web3;
@@ -70,20 +71,22 @@ export class Executor {
   }
 
   private async getExecutableForAccount(account: Account): Promise<ExecutableModule> {
-    const tierModule = new TierModule(account);
-    const actionType = tierModule.findActionForAccount();
+    const executableTest = this.actionTypeToExecutableMapper[ActionType.PancakeSwap];
 
-    let executableModule;
+    // const tierModule = new TierModule(account);
+    // const actionType = tierModule.findActionForAccount();
 
-    if (actionType === ActionType.RandomCheap) {
-      executableModule = this.pickRandomCheapActivity(account);
-    } else if (actionType === ActionType.NewContract) {
-      executableModule = await this.pickNewContract(account);
-    } else {
-      executableModule = this.actionTypeToExecutableMapper[actionType];
-    }
+    // let executableModule;
 
-    const initializedExecutable = new executableModule(account.privateKey);
+    // if (actionType === ActionType.RandomCheap) {
+    //   executableModule = this.pickRandomCheapActivity(account);
+    // } else if (actionType === ActionType.NewContract) {
+    //   executableModule = await this.pickNewContract(account);
+    // } else {
+    //   executableModule = this.actionTypeToExecutableMapper[actionType];
+    // }
+
+    const initializedExecutable = new executableTest(account.privateKey);
     return initializedExecutable;
   }
 
@@ -96,6 +99,7 @@ export class Executor {
     [ActionType.SyncSwap]: SyncSwap,
     [ActionType.Velocore]: Velocore,
     [ActionType.ZkNS]: ZkSyncNameService,
+    [ActionType.PancakeSwap]: PancakeSwap,
   };
 
   private async pickNewContract(account: Account) {
