@@ -1,6 +1,6 @@
 eth_privates.txt
-proxies.txt
 node_modules
+proxies.txt
 zk-sim
 
 dist
