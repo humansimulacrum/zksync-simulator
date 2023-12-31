@@ -55,6 +55,7 @@ export class Executor {
   async executeActionsOnBatch() {
     for (let i = 0; i < this.accounts.length; i++) {
       await this.executeAction(this.accounts[i]);
+      await this.activityModule.actualizeActivity(this.accounts[i]);
     }
   }
 

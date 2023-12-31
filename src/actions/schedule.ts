@@ -7,7 +7,7 @@ function getRandomTime() {
   const randomHour = Math.floor(Math.random() * 24);
 
   // Generate a random minute between 0 and 59
-  const randomMinute = randomIntInRange(33, 38);
+  const randomMinute = randomIntInRange(33, 58);
   return `${randomMinute} ${randomHour} * * *`; // minute hour * * *
 }
 
