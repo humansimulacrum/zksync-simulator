@@ -33,4 +33,8 @@ export const AccountRepository = AppDataSource.getRepository(Account).extend({
   updateById(id: string, payload: DeepPartial<Account>) {
     return this.update({ id }, payload);
   },
+
+  getAllAccounts(): Promise<Account[]> {
+    return this.find();
+  },
 });

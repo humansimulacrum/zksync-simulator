@@ -13,8 +13,8 @@ export const moduleName = 'ZkSync-Simulator';
 export const logFilePath = 'logs.txt';
 
 // picker options
-
-export const daysBetweenTransactionsOnAccount = 30; // one transaction each week, when activity is kept
+export const ONLY_INACTIVE_ACCOUNTS_PICKED = true;
+export const daysBetweenTransactionsOnAccount = 30; // one transaction each month, when activity is kept
 export const accountsInBatch = 4;
 
 // swap config

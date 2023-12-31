@@ -1,11 +1,23 @@
 import { shuffle } from '.';
-import { accountsInBatch, daysBetweenTransactionsOnAccount, shuffleWallets } from '../const/config.const';
+import {
+  ONLY_INACTIVE_ACCOUNTS_PICKED,
+  accountsInBatch,
+  daysBetweenTransactionsOnAccount,
+  shuffleWallets,
+} from '../const/config.const';
 import { getDaysAgo } from './date.helper';
 import { AccountRepository } from '../../repositories/account.repository';
 import { Account } from '../../entity/account.entity';
 
 export async function accountPicker() {
-  const accounts = await selectAccountsThatWereInactive();
+  let accounts: Account[];
+
+  if (ONLY_INACTIVE_ACCOUNTS_PICKED) {
+    accounts = await selectAccountsThatWereInactive();
+  } else {
+    accounts = await AccountRepository.getAllAccounts();
+  }
+
   const batch = formBatch(accounts);
 
   return batch;
