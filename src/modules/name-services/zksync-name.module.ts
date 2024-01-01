@@ -47,7 +47,9 @@ export class ZkSyncNameService implements ExecutableModule {
   }
 
   async execute(): Promise<ExecuteOutput> {
-    if (await this.isAlreadyMinted()) {
+    const isAlreadyMinted = await this.isAlreadyMinted();
+
+    if (isAlreadyMinted !== '0') {
       throw new Error('Already minted');
     }
 
@@ -67,7 +69,7 @@ export class ZkSyncNameService implements ExecutableModule {
     const mintPrice = 0.0026;
     const mintPriceWei = toWei(mintPrice);
 
-    const mintFunctionCall = this.contract.methods.register(name);
+    const mintFunctionCall = this.contract.methods.Register(name);
 
     const transaction = new Transaction(this.web3, this.contractAddr, mintPriceWei, mintFunctionCall, this.account);
     const transactionHash = await transaction.sendTransaction();
@@ -81,7 +83,7 @@ export class ZkSyncNameService implements ExecutableModule {
     while (true) {
       name = generateName();
       const isTaken = await this.checkEligibility(name);
-      if (isTaken === 0) {
+      if (isTaken === '0') {
         break;
       }
     }

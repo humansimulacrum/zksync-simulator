@@ -37,6 +37,7 @@ export class Transaction {
       throw new Error('Transaction signature failed.');
     }
 
+    // TODO: Add error handling for insufficient balance for transfer error
     const transactionResult = await this.web3.eth.sendSignedTransaction(signedTx.rawTransaction);
     return transactionResult.transactionHash;
   }
