@@ -5,7 +5,7 @@
   "main": "src/actions/main.ts",
   "scripts": {
     "build": "tsc",
-    "bootstrap": "npm run import && npm run tier-distribution",
+    "bootstrap": "npm run import && npm run update && npm run tier-distribution",
     "start": "ts-node src/actions/main.ts",
     "import": "ts-node src/actions/import.ts",
     "update": "ts-node src/actions/update.ts",

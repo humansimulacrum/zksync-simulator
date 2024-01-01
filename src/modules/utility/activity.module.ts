@@ -109,7 +109,7 @@ export class ActivityModule {
 
     let gasSpentInUsd = Number(fromWei(sumInWei.toFixed(0))) * etherPrice;
 
-    if (gasSpentInUsd && isNaN(gasSpentInUsd)) {
+    if (isNaN(gasSpentInUsd)) {
       gasSpentInUsd = 0;
     }
 
@@ -207,7 +207,9 @@ export class ActivityModule {
 
   private async hasZkDomainName(walletAddress: string): Promise<boolean> {
     const zkNameService = new ZkSyncNameService(undefined, walletAddress);
-    return zkNameService.isAlreadyMinted() !== '0';
+
+    const isAlreadyMinted = await zkNameService.isAlreadyMinted();
+    return isAlreadyMinted !== '0';
   }
 
   private isBridgeTransfer = (transfer: TransferDataItem, walletAddress: string) =>
