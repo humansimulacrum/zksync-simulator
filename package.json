@@ -11,7 +11,8 @@
     "update": "ts-node src/actions/update.ts",
     "schedule": "SCHEDULE_MODE=true ts-node src/actions/schedule.ts",
     "tier-distribution": "ts-node src/actions/tier-distribution.ts",
-    "activity": "ts-node src/actions/activity.ts"
+    "activity": "ts-node src/actions/activity.ts",
+    "balances": "ts-node src/actions/balances.ts"
   },
   "author": "simulacrum",
   "license": "ISC",
