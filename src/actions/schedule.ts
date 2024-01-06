@@ -13,6 +13,7 @@ function getRandomTime() {
 
 // Create a CronJob that runs every day at a random time
 const cronExpression = getRandomTime();
+
 const job = schedule(cronExpression, main);
 
 job.start();
