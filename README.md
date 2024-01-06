@@ -69,7 +69,7 @@ In `tier.const.ts` (in the `tiers` variable), you can view/set different require
 - ZkSync Name Service - Domain Name
 - Dmailer - Cheap Transactions
 - MuteSwap - Swap
-- PancakeSwap - Swap (temporarily disabled, need to fix WETH unwrapping)
+- PancakeSwap - Swap
 - SpaceFi - Swap
 - SyncSwap - Swap
 - Velocore - Swap
@@ -107,6 +107,12 @@ Configurations can be tweaked in the `config.const.ts` file:
 5. Execute `npm run bootstrap` to initialize.
 
 To run a batch of accounts once, use `npm run start`. To set up a scheduler for automatic activities, use `npm run schedule`.
+
+### Additional commands
+`npm run update` - to update activities 
+`npm run tier-distribution` - to redistribute tiers 
+`npm run activities` - to get information about activities on your accounts (ZkSync checker of some sort)
+
 
 ## Support
 
