@@ -7,7 +7,7 @@ async function actualizeActivityAll() {
   await connectToDatabase();
 
   const activityModule = await ActivityModule.create();
-  const accounts = await AccountRepository.find();
+  const accounts = await AccountRepository.find({ relations: ['activity'] });
 
   const promiseArray = accounts.map(async (account) => {
     const activity = await activityModule.actualizeActivity(account);

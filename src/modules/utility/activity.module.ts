@@ -105,9 +105,9 @@ export class ActivityModule {
       return acc + fee;
     }, 0);
 
-    const etherPrice = await getTokenPriceCryptoCompare('ETH');
+    const ethToken = (await this.tokenModule.getTokensBySymbols(['ETH']))[0];
 
-    let gasSpentInUsd = Number(fromWei(sumInWei.toFixed(0))) * etherPrice;
+    let gasSpentInUsd = Number(fromWei(sumInWei.toFixed(0))) * ethToken.priceInUsd;
 
     if (isNaN(gasSpentInUsd)) {
       gasSpentInUsd = 0;
