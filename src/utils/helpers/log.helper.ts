@@ -11,12 +11,14 @@ export const log = (message: string) => {
   // Print the log message to the console
   console.log(message);
 
-  // Append the log message to the log file
-  fs.appendFile(logFilePath, message + '\n', (err) => {
-    if (err) {
-      console.error('Error writing to log file:', err);
-    }
-  });
+  if (!message.includes('Gas Checker.')) {
+    // Append the log message to the log file
+    fs.appendFile(logFilePath, message + '\n', (err) => {
+      if (err) {
+        console.error('Error writing to log file:', err);
+      }
+    });
+  }
 };
 
 export const logWithFormatting = (protocolName: string, message: string) => {
