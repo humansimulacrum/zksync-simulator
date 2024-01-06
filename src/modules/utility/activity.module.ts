@@ -61,7 +61,7 @@ export class ActivityModule {
     return {
       gasSpentInUsd,
       lastTransactionDate,
-      bridgeVolume,
+      bridgeVolume: Number(fromWei(bridgeVolume)),
       transactionVolume,
       officialBridge,
       zkSyncDomain,
