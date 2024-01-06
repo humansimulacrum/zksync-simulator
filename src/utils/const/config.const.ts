@@ -9,11 +9,10 @@ export const slippage = 0.97; // 97% from token price is set as minimum out amou
 
 export const minAmountOfTokenToSwapInUsd = 0.15;
 
-export const moduleName = 'ZkSync-Simulator';
 export const logFilePath = 'logs.txt';
 
 // picker options
-export const ONLY_INACTIVE_ACCOUNTS_PICKED = true;
+export const ONLY_INACTIVE_ACCOUNTS_PICKED = false;
 export const daysBetweenTransactionsOnAccount = 30; // one transaction each month, when activity is kept
 export const ACCOUNTS_IN_BATCH = 4;
 

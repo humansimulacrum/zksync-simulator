@@ -28,33 +28,36 @@ export class PancakeSwap extends Swap {
         this.protocolName,
         `${this.walletAddress}: There aren't any pools available for those tokens ${fromToken.symbol} => ${toToken.symbol}`
       );
+
+      throw new Error('No pools available');
     }
 
     const routerAbi = getAbiByRelativePath('../abi/pancakeRouter.json');
     const routerContractInstance = new this.web3.eth.Contract(routerAbi, this.protocolRouterContract);
 
-    const params = {
-      fromToken: fromToken.contractAddress,
-      toToken: toToken.contractAddress,
-      fee: 500,
-      recipient: this.walletAddress,
-      amountIn: amountWithPrecision,
-      amountOutMinimum: minAmountOut,
-      sqrtPriceLimitX96: 0,
-    };
+    const exactInputSingleData = routerContractInstance.methods
+      .exactInputSingle([
+        fromToken.contractAddress,
+        toToken.contractAddress,
+        500,
+        toToken.symbol === 'ETH' ? '0x0000000000000000000000000000000000000002' : this.walletAddress,
+        amountWithPrecision,
+        minAmountOut,
+        0,
+      ])
+      .encodeABI();
 
-    return routerContractInstance.methods.exactInputSingle([
-      params.fromToken,
-      params.toToken,
-      params.fee,
-      params.recipient,
-      params.amountIn,
-      params.amountOutMinimum,
-      params.sqrtPriceLimitX96,
-    ]);
+    const multicallCallArray = [exactInputSingleData];
+
+    if (toToken.symbol === 'ETH') {
+      const unwrapWETH9Data = routerContractInstance.methods.unwrapWETH9(minAmountOut, this.walletAddress).encodeABI();
+      multicallCallArray.push(unwrapWETH9Data);
+    }
+
+    return routerContractInstance.methods.multicall(swapDeadline, multicallCallArray);
   }
 
-  private async getMinAmountOutWithQuoter(fromToken: Token, toToken: Token, fromTokenAmount: string) {
+  private async getMinAmountOutWithQuoter(fromToken: Token, toToken: Token, fromTokenAmount: string): Promise<string> {
     const quoterAbi = getAbiByRelativePath('../abi/pancakeQuoter.json');
     const quoter = new this.web3.eth.Contract(quoterAbi, PANCAKE_QUOTER_ADDR);
 
@@ -64,7 +67,7 @@ export class PancakeSwap extends Swap {
 
     const quoterPredictedAmount = quoterFunctionResult[0];
     const minAmountOut = substractPercentage(quoterPredictedAmount, 1 - slippage);
-    return minAmountOut;
+    return minAmountOut.toFixed(0);
   }
 
   private async getPoolAddress(fromToken: Token, toToken: Token) {

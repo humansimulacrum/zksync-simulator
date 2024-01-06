@@ -29,7 +29,7 @@ async function selectAccountsThatWereInactive() {
 }
 
 function calculateBatchAmount(accounts: Account[]) {
-  return accounts.length / daysBetweenTransactionsOnAccount;
+  return Math.ceil(accounts.length / daysBetweenTransactionsOnAccount);
 }
 
 function formBatch(accounts: Account[], accountsInBatch: number): Account[] {

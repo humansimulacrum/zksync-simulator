@@ -1,5 +1,7 @@
 import fs from 'fs';
-import { moduleName, logFilePath } from '../const/config.const';
+import path from 'path';
+
+import { logFilePath } from '../const/config.const';
 import cliProgress from 'cli-progress';
 import colors from 'ansi-colors';
 import { sleep } from '.';
@@ -18,7 +20,7 @@ export const log = (message: string) => {
 };
 
 export const logWithFormatting = (protocolName: string, message: string) => {
-  const logMessage = `${moduleName} | ${protocolName}. ${message}`;
+  const logMessage = `${protocolName}. ${message}`;
   log(logMessage);
 };
 
@@ -27,8 +29,6 @@ export const sleepLogWrapper = async (millis: number, walletAddr: string, messag
   const bar = new cliProgress.SingleBar(
     {
       format:
-        moduleName +
-        '. ' +
         walletAddr +
         ': ' +
         colors.cyan('{bar}') +
@@ -51,6 +51,37 @@ export const sleepLogWrapper = async (millis: number, walletAddr: string, messag
 };
 
 export const logSuccessfullAction = (executeOutput: ExecuteOutput, walletAddress: string) => {
-  const message = `${moduleName} | ${walletAddress} : ${executeOutput.protocolName} | ${executeOutput.message} | TX: ${executeOutput.chain.explorer}/${executeOutput.transactionHash}`;
+  const message = `${walletAddress} : ${executeOutput.protocolName} | ${executeOutput.message} | TX: ${executeOutput.chain.explorer}/${executeOutput.transactionHash}`;
   log(message);
 };
+
+// Function to convert array of objects to CSV
+function toCSV(data: any[]) {
+  const csvRows = [];
+  // Get the headers (column names)
+  const headers = Object.keys(data[0]);
+  csvRows.push(headers.join(','));
+
+  // Loop over the rows and turn each object into a CSV string
+  for (const row of data) {
+    const values = headers.map((header) => {
+      const escaped = ('' + row[header]).replace(/"/g, '\\"');
+      return `"${escaped}"`;
+    });
+    csvRows.push(values.join(','));
+  }
+
+  return csvRows.join('\n');
+}
+
+export function writeToCsvFile(data: any[], filename = 'export.csv') {
+  // Write CSV to a file
+  const csvData = toCSV(data);
+  const outputDir = 'output';
+  const filePath = path.join(outputDir, filename);
+
+  fs.mkdirSync(outputDir, { recursive: true });
+  fs.writeFileSync(filePath, csvData, 'utf8');
+
+  logWithFormatting(`Activity Output`, `CSV file written to ${filePath}`);
+}
