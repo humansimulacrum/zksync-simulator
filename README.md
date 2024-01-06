@@ -112,6 +112,7 @@ To run a batch of accounts once, use `npm run start`. To set up a scheduler for 
 `npm run update` - to update activities 
 `npm run tier-distribution` - to redistribute tiers 
 `npm run activities` - to get information about activities on your accounts (ZkSync checker of some sort)
+`npm run balances` - to get balances of all accounts
 
 
 ## Support

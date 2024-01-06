@@ -2,9 +2,13 @@ import { ActivityModule } from '../modules/utility/activity.module';
 import { connectToDatabase } from '../utils/helpers/db.helper';
 import { AccountRepository } from '../repositories/account.repository';
 import { logWithFormatting } from '../utils/helpers';
+import { TokenModule } from '../modules/utility/token.module';
 
 async function actualizeActivityAll() {
   await connectToDatabase();
+
+  const tokenModule = await TokenModule.create();
+  await tokenModule.upsertTokens();
 
   const activityModule = await ActivityModule.create();
   const accounts = await AccountRepository.find({ relations: ['activity'] });
