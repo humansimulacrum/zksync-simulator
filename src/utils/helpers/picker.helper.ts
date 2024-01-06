@@ -1,7 +1,7 @@
 import { shuffle } from '.';
 import {
   ONLY_INACTIVE_ACCOUNTS_PICKED,
-  accountsInBatch,
+  ACCOUNTS_IN_BATCH,
   daysBetweenTransactionsOnAccount,
   shuffleWallets,
 } from '../const/config.const';
@@ -12,15 +12,13 @@ import { Account } from '../../entity/account.entity';
 export async function accountPicker() {
   let accounts: Account[];
 
-  if (ONLY_INACTIVE_ACCOUNTS_PICKED) {
-    accounts = await selectAccountsThatWereInactive();
-  } else {
+  if (!ONLY_INACTIVE_ACCOUNTS_PICKED) {
     accounts = await AccountRepository.getAllAccounts();
+    return formBatch(accounts, ACCOUNTS_IN_BATCH);
   }
 
-  const batch = formBatch(accounts);
-
-  return batch;
+  accounts = await selectAccountsThatWereInactive();
+  return formBatch(accounts, calculateBatchAmount(accounts));
 }
 
 async function selectAccountsThatWereInactive() {
@@ -30,7 +28,11 @@ async function selectAccountsThatWereInactive() {
   return accounts;
 }
 
-function formBatch(accounts: Account[]): Account[] {
+function calculateBatchAmount(accounts: Account[]) {
+  return Math.ceil(accounts.length / daysBetweenTransactionsOnAccount);
+}
+
+function formBatch(accounts: Account[], accountsInBatch: number): Account[] {
   if (shuffleWallets) {
     accounts = shuffle(accounts);
   }

@@ -6,7 +6,7 @@ export enum ActionType {
   'SpaceFi' = 'SpaceFi',
   'Velocore' = 'Velocore',
   'SyncSwap' = 'SyncSwap',
-  // 'PancakeSwap' = 'PancakeSwap',
+  'PancakeSwap' = 'PancakeSwap',
   'RandomSwap' = 'RandomSwap',
   'RandomCheap' = 'RandomCheap',
   'NewContract' = 'NewContract',

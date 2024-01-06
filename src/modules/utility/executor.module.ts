@@ -21,14 +21,14 @@ import { Dmail } from '../abuse/dmailer.module';
 import { ZkSyncBridge } from '../bridges/zksync-bridge.module';
 import { Velocore } from '../swaps/velocore.module';
 import { ZkSyncNameService } from '../name-services/zksync-name.module';
-import { TierModule } from './tier.module';
 import { ActivityModule } from './activity.module';
 import {
   CheapDoableActions,
   allCheapContracts,
   contractToCheapActionTypeMapper,
 } from '../../utils/const/activity-contracts.const';
-// import { PancakeSwap } from '../swaps/pancake.module';
+import { PancakeSwap } from '../swaps/pancake.module';
+import { TierModule } from './tier.module';
 
 export class Executor {
   web3: Web3;
@@ -57,6 +57,7 @@ export class Executor {
     for (let i = 0; i < this.accounts.length; i++) {
       await this.executeAction(this.accounts[i]);
       await this.activityModule.actualizeActivity(this.accounts[i]);
+      await sleepBetweenWallets(this.accounts.length);
     }
   }
 
@@ -66,8 +67,6 @@ export class Executor {
 
     const executeOutput = await executableModule.execute();
     logSuccessfullAction(executeOutput, account.walletAddress);
-
-    await sleepBetweenWallets();
   }
 
   private async getExecutableForAccount(account: Account): Promise<ExecutableModule> {
@@ -97,7 +96,7 @@ export class Executor {
     [ActionType.SyncSwap]: SyncSwap,
     [ActionType.Velocore]: Velocore,
     [ActionType.ZkNS]: ZkSyncNameService,
-    // [ActionType.PancakeSwap]: PancakeSwap,
+    [ActionType.PancakeSwap]: PancakeSwap,
   };
 
   private async pickNewContract(account: Account) {
@@ -116,8 +115,7 @@ export class Executor {
   }
 
   private pickRandomSwap() {
-    // const SWAPS = [SpaceFiSwap, MuteSwap, SyncSwap, Velocore, PancakeSwap];
-    const SWAPS = [SpaceFiSwap, MuteSwap, SyncSwap, Velocore];
+    const SWAPS = [SpaceFiSwap, MuteSwap, SyncSwap, Velocore, PancakeSwap];
     return choose(SWAPS);
   }
 
