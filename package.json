@@ -9,7 +9,7 @@
     "start": "ts-node src/actions/main.ts",
     "import": "ts-node src/actions/import.ts",
     "update": "ts-node src/actions/update.ts",
-    "schedule": "ts-node src/actions/schedule.ts",
+    "schedule": "SCHEDULE_MODE=true ts-node src/actions/schedule.ts",
     "tier-distribution": "ts-node src/actions/tier-distribution.ts",
     "activity": "ts-node src/actions/activity.ts"
   },
