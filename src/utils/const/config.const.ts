@@ -5,6 +5,9 @@ export const sleepOnHighGas = 60;
 export const sleepBetweenWalletsFrom = 300;
 export const sleepBetweenWalletsTo = 600;
 
+export const sleepBetweenTransactionsFrom = 300;
+export const sleepBetweenTransactionsTo = 600;
+
 export const slippage = 0.97; // 97% from token price is set as minimum out amount on swap
 
 export const minAmountOfTokenToSwapInUsd = 0.15;
@@ -23,3 +26,5 @@ export const partOfEthToSwapMax = 0.6; // 60% of current eth balance
 // bridge config
 export const partOfEthToBridgeMin = 0.4; // 40% of current eth balance
 export const partOfEthToBridgeMax = 0.6; // 60% of current eth balance
+
+export const MAX_CONSECUTIVE_TRANSACTIONS_PER_ACCOUNT = 3;

@@ -1,4 +1,9 @@
-import { sleepBetweenWalletsFrom, sleepBetweenWalletsTo } from '../const/config.const';
+import {
+  sleepBetweenTransactionsFrom,
+  sleepBetweenTransactionsTo,
+  sleepBetweenWalletsFrom,
+  sleepBetweenWalletsTo,
+} from '../const/config.const';
 import { randomIntInRange, sleepLogWrapper } from '.';
 import { ethers } from 'ethers';
 
@@ -13,6 +18,13 @@ export async function sleepBetweenWallets(amountOfAccounts: number) {
   }
 
   await sleepLogWrapper(sleepDuration * 1000, ethers.constants.AddressZero, 'between wallets.');
+}
+
+export async function sleepBetweenTransactions(walletAddress: string) {
+  const sleepDuration = randomIntInRange(sleepBetweenTransactionsFrom, sleepBetweenTransactionsTo);
+
+  await sleepLogWrapper(sleepDuration * 1000, walletAddress, 'between transactions.');
+  return sleep(sleepDuration);
 }
 
 export async function sleep(millis: number) {

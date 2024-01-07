@@ -7,11 +7,12 @@ import {
   choose,
   logSuccessfullAction,
   logWithFormatting,
+  sleepBetweenTransactions,
   sleepBetweenWallets,
   sleepLogWrapper,
 } from '../../utils/helpers';
 import { Account } from '../../entity';
-import { maxGwei, sleepOnHighGas } from '../../utils/const/config.const';
+import { MAX_CONSECUTIVE_TRANSACTIONS_PER_ACCOUNT, maxGwei, sleepOnHighGas } from '../../utils/const/config.const';
 import { ExecutableModule } from '../../utils/interfaces/execute.interface';
 import { SyncSwap } from '../swaps/syncswap.module';
 import { MuteSwap } from '../swaps/muteswap.module';
@@ -55,8 +56,18 @@ export class Executor {
 
   async executeActionsOnBatch() {
     for (let i = 0; i < this.accounts.length; i++) {
-      await this.executeAction(this.accounts[i]);
-      await this.activityModule.actualizeActivity(this.accounts[i]);
+      let successfullPerformedActionCounter = 0;
+
+      while (successfullPerformedActionCounter < MAX_CONSECUTIVE_TRANSACTIONS_PER_ACCOUNT) {
+        await this.executeAction(this.accounts[i]);
+        await this.activityModule.actualizeActivity(this.accounts[i]);
+
+        successfullPerformedActionCounter++;
+
+        if (successfullPerformedActionCounter !== MAX_CONSECUTIVE_TRANSACTIONS_PER_ACCOUNT) {
+          await sleepBetweenTransactions(this.accounts[i].walletAddress);
+        }
+      }
       await sleepBetweenWallets(this.accounts.length);
     }
   }
