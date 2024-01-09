@@ -106,7 +106,8 @@ Configurations can be tweaked in the `config.const.ts` file:
 4. Add your proxy to the `proxies.txt` file in the project's root (refer to `proxies.example.txt`).
 5. Execute `npm run bootstrap` to initialize.
 
-To run a batch of accounts once, use `npm run start`. To set up a scheduler for automatic activities, use `npm run schedule`.
+To run a batch of accounts once, use `npm run start`.
+To set up a scheduler for automatic activities, install forever tool - `sudo npm i -g forever` and setup scheduler with `npm run process:schedule`.
 
 ### Additional commands
 `npm run update` - to update activities 
