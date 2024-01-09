@@ -13,7 +13,7 @@
     "tier-distribution": "ts-node src/actions/tier-distribution.ts",
     "activity": "ts-node src/actions/activity.ts",
     "balances": "ts-node src/actions/balances.ts",
-    "process:schedule": "pm2 start src/actions/schedule.ts --name zksync-scheduler"
+    "process:schedule": "forever start -c ts-node src/actions/schedule.ts"
   },
   "author": "simulacrum",
   "license": "ISC",
@@ -33,12 +33,11 @@
     "zksync-web3": "^0.14.3"
   },
   "devDependencies": {
-    "@tsconfig/node18": "^18.2.0",
     "@types/cli-progress": "^3.11.3",
     "@types/make-fetch-happen": "^10.0.2",
     "@types/node-cron": "^3.0.9",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.1.6"
+    "typescript": "^5.3.3"
   }
 }
