@@ -12,7 +12,8 @@
     "schedule": "SCHEDULE_MODE=true ts-node src/actions/schedule.ts",
     "tier-distribution": "ts-node src/actions/tier-distribution.ts",
     "activity": "ts-node src/actions/activity.ts",
-    "balances": "ts-node src/actions/balances.ts"
+    "balances": "ts-node src/actions/balances.ts",
+    "process:schedule": "pm2 start src/actions/schedule.ts --name zksync-scheduler"
   },
   "author": "simulacrum",
   "license": "ISC",
